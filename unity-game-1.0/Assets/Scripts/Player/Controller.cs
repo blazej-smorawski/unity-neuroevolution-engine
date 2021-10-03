@@ -1,24 +1,26 @@
 ﻿using System.Collections.Generic;
-using UnityEngine.InputSystem;
 using UnityEngine;
 
 public abstract class Controller : MonoBehaviour
 {
     [Header("Movement")]
-    protected float horizontal;
-    protected float vertical;
-    protected float targetHorizontal;
-    protected float targetVertical;
-    protected float walkBlendSpeed;
-    protected float targetWalkBlendSpeed;
+    protected bool isBusy = false;
     public float acceleration;
     public float rotationSpeed;
+    [HideInInspector] public float targetHorizontal;
+    [HideInInspector] public float targetVertical;
+    public List<InputReader> inputs;
+    protected float horizontal;
+    protected float vertical;
+    protected float walkBlendSpeed;
+    protected float targetWalkBlendSpeed;
     protected Transform cameraTarget;
-
-    protected Animator animator;
     protected Vector3 rotationOffset;
     protected Vector3 direction;
     protected Vector3 newPostion;
+    [Header("Combat")]
+    public List<Attack> attacksList;
+    protected Animator animator;
 
     void Start()
     {
@@ -33,9 +35,10 @@ public abstract class Controller : MonoBehaviour
     void Update()
     {
         MoveCharacter();
+        ReadInput();
     }
 
-    public abstract void ReadInput(InputAction.CallbackContext context);//Here targetHorizontal and targetVertical must be set!
+    public abstract void ReadInput();//Here targetHorizontal and targetVertical must be set!
 
     public virtual void MoveCharacter()
     {
@@ -69,6 +72,31 @@ public abstract class Controller : MonoBehaviour
         }
 
         animator.SetFloat("walkBlend", walkBlendSpeed);//SPEED is an agrument of WALKBLEND blend tree
+    }
+
+    public void PerformAttack(int id)
+    {
+        //if (!isBusy)
+        {
+            isBusy = true;
+            animator.SetBool(attacksList[id].animationBool, true);
+        }
+    }
+
+    public void AttackAnimationFinished()
+    {
+        isBusy = false;
+        foreach (Attack attack in attacksList)
+        {
+            animator.SetBool(attack.animationBool, false);
+        }
+    }
+
+    [System.Serializable]
+    public class Attack
+    {
+        public string animationBool = "slashTwoHanded";
+        public Weapon weapon;
     }
 }
 
