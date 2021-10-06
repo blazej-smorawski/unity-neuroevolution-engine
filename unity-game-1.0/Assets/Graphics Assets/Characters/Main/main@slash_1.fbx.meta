@@ -65,6 +65,13 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
+      - time: 0.3148148
+        functionName: PlayParticleEffect
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 0.44444445
         functionName: AttackAnimationFinished
         data: 
@@ -72,7 +79,14 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.91851854
+      - time: 0.7185185
+        functionName: PlayParticleEffect
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.9500146
         functionName: AttackAnimationFinished
         data: 
         objectReferenceParameter: {instanceID: 0}

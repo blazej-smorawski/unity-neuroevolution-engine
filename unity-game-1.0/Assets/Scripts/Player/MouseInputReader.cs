@@ -14,17 +14,12 @@ public class MouseInputReader : InputReader
 
         playerScreenPosition = Camera.main.WorldToScreenPoint(transform.position);
         mousePosition = Input.mousePosition;
-        mouseDirection = (mousePosition - playerScreenPosition).normalized;
+        mouseDirection = (mousePosition - playerScreenPosition);
 
-        if (Input.GetButton("Fire2"))
+        if (Input.GetButton("Fire2") && mouseDirection.magnitude>Screen.height*0.1f)//Screen.height condition added in order to avoid super fast rotation when pointing at player's character's feet
         {
-            controller.targetHorizontal = mouseDirection.x;
-            controller.targetVertical = mouseDirection.y;
-        }
-        else
-        {
-            controller.targetHorizontal = 0;
-            controller.targetVertical = 0;
+            controller.targetHorizontal = mouseDirection.normalized.x;
+            controller.targetVertical = mouseDirection.normalized.y;
         }
     }
 }

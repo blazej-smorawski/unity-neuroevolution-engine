@@ -6,7 +6,9 @@ public class PlayerController : Controller
 {
     public override void ReadInput()
     {
-        foreach(InputReader input in inputs)
+        targetHorizontal = 0;//We set it to 0, so the character will stop if he has not received any diffrent directions
+        targetVertical = 0;
+        foreach (InputReader input in inputs)
         {
             input.ReadInput(this);
         }
