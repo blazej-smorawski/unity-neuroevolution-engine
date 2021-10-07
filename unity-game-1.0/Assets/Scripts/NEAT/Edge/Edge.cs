@@ -6,25 +6,30 @@ using UnityEngine;
 public class Edge : Mutational
 {
     [SerializeField]
-    private NeuralNetwork neuralNetwork;
+    private int nodeId;
     [SerializeField]
-    private Node from;
+    private int targetNodeId;
     [SerializeField]
-    private Node to;
-    float weight;
+    private int nodeLayer;
+    [SerializeField]
+    private float weight;
 
-    public Edge(NeuralNetwork neuralNetwork, Node from, Node to, float weight)
+    /// <summary>
+    /// Representation of connection to a node. It should be rewritten, but it's quite challenging <br/>
+    /// due to the fact that it has to be serializable. Using referene to targetNode looks and works <br/>
+    /// great but it creates circular dependency, so :( <br/>
+    /// </summary>
+    public Edge(int nodeId, int targetNodeId, int nodeLayer, float weight)
     {
-        this.neuralNetwork = neuralNetwork;
-        this.from = from;
-        this.to = to;
+        this.nodeId = nodeId;
+        this.targetNodeId = targetNodeId;
+        this.nodeLayer = nodeLayer;
         this.weight = weight;
-
     }
 
     public bool EndsIn(Node endNode)
     {
-        return to == endNode;
+        return targetNodeId == endNode.GetId();
     }
     //Triggered after reproduction of organism
     public void Mutate()
@@ -37,9 +42,11 @@ public class Edge : Mutational
 
     }
 
-    //
-    public void FireConnection()
+    /// <summary>
+    /// We fire connection to node with targetNodeId which has to be in the next layer.
+    /// </summary>
+    public void FireConnection(NeuralNetwork neuralNetwork,Node from)
     {
-        to.AddValue(weight * from.GetValue());
+        neuralNetwork.GetNodeById(targetNodeId,from.GetLayer()+1).AddValue(weight * from.GetValue());
     }
 }

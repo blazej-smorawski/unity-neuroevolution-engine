@@ -73,44 +73,17 @@ public class OrganismEditorWindow : EditorWindow
 
             if (organism.brain != null)
             {
-                if (GUILayout.Button("Draw Nodes", GUILayout.MaxWidth(180)))
+                if (GUILayout.Button("Predict", GUILayout.MaxWidth(180)))
                 {
-                    nodes = new List<VisualNode>();
-                    edgeColours = new List<Color>();
-                    edgeBeginnings = new List<Rect>();
-                    edgeEnds = new List<Rect>();
-
-                    int positionX = xMargin;
-
-                    foreach (NeuralLayer neuralLayer in organism.brain.layers)
-                    {
-                        int positionY = yMargin;
-                        foreach (Node node in neuralLayer.nodes)
-                        {
-                            //Rect newRect = new Rect(positionX, positionY, 50, 50);
-                            nodes.Add(new VisualNode(node, new Rect(positionX, positionY, 50, 50), 
-                                new GUIContent("Node:" + node.GetId(), "Click to delete[not implemented]")));
-
-                            positionY += yDelta;
-                        }
-                        positionX += xDelta;
-                    }
-
-                    foreach (VisualNode begginingNode in nodes)
-                    {
-                        foreach (VisualNode endNode in nodes)
-                        {
-                            if(begginingNode.node.IsConnectedWith(endNode.node))
-                            {
-                                edgeBeginnings.Add(begginingNode.nodeRect);
-                                edgeEnds.Add(endNode.nodeRect);
-                                edgeColours.Add(Color.blue);//Add weight?
-                            }
-                        }
-                    }
+                    organism.brain.Predict();
+                    DrawNodes();
                 }
 
-                scrollPosition = GUILayout.BeginScrollView(scrollPosition, true, true, GUILayout.Width(400), GUILayout.Height(400));
+                if (GUILayout.Button("Draw Nodes", GUILayout.MaxWidth(180)))
+                {
+                    DrawNodes();
+                }
+
                 if (nodes != null)
                 {
                     Handles.BeginGUI();
@@ -132,13 +105,49 @@ public class OrganismEditorWindow : EditorWindow
                     }
                 }
                 EndWindows();
-                GUILayout.EndScrollView();
                 //windowRect = GUI.Window(0, windowRect, WindowFunction, "Box1");
             }
         }
         else
         {
             GUILayout.Label("Please select GameObject containing Organism component");
+        }
+    }
+
+    private void DrawNodes()
+    {
+        nodes = new List<VisualNode>();
+        edgeColours = new List<Color>();
+        edgeBeginnings = new List<Rect>();
+        edgeEnds = new List<Rect>();
+
+        int positionX = xMargin;
+
+        foreach (NeuralLayer neuralLayer in organism.brain.layers)
+        {
+            int positionY = yMargin;
+            foreach (Node node in neuralLayer.nodes)
+            {
+                //Rect newRect = new Rect(positionX, positionY, 50, 50);
+                nodes.Add(new VisualNode(node, new Rect(positionX, positionY, 50, 50),
+                    new GUIContent("Node:" + node.GetId() + "\n->" + node.GetValue(), "Click to delete[not implemented]")));
+
+                positionY += yDelta;
+            }
+            positionX += xDelta;
+        }
+
+        foreach (VisualNode begginingNode in nodes)
+        {
+            foreach (VisualNode endNode in nodes)
+            {
+                if (begginingNode.node.IsConnectedWith(endNode.node))
+                {
+                    edgeBeginnings.Add(begginingNode.nodeRect);
+                    edgeEnds.Add(endNode.nodeRect);
+                    edgeColours.Add(Color.blue);//Add weight?
+                }
+            }
         }
     }
 

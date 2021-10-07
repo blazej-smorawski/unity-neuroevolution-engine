@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,8 +12,6 @@ public interface Mutational
 public class Node : Mutational
 {
     [SerializeField]
-    private NeuralNetwork neuralNetwork;
-    [SerializeField]
     private int id;
     [SerializeField]
     private int layer;
@@ -21,9 +20,8 @@ public class Node : Mutational
     [SerializeField]
     private List<Edge> connectedEdges;
 
-    public Node(NeuralNetwork neuralNetwork, int id, int value, int layer)
+    public Node(int id, int value, int layer)
     {
-        this.neuralNetwork = neuralNetwork;
         this.id = id;
         this.value = value;
         this.layer = layer;
@@ -36,6 +34,11 @@ public class Node : Mutational
         return id;
     }
 
+    public int GetLayer()
+    {
+        return layer;
+    }
+
     public float GetValue()
     {
         return value;
@@ -43,6 +46,7 @@ public class Node : Mutational
 
     public void AddValue(float addValue)
     {
+        Debug.Log("NeuralNetwork|Node:" + GetId() + "->" + value + "+" + addValue);
         value += addValue;
         value = NeuralNetwork.NormalizeNodeValue(value);
     }
@@ -73,14 +77,14 @@ public class Node : Mutational
     //Connect this to node
     public void Connect(Node node, float weight)
     {
-        connectedEdges.Add(new Edge(neuralNetwork, this, node, weight));
+        connectedEdges.Add(new Edge(id, node.GetId(), layer, weight));
     }
 
-    public void InfluenceConnectedNodes()
+    public void InfluenceConnectedNodes(NeuralNetwork neuralNetwork)
     {
         for(int i=0;i<connectedEdges.Count;i++)
         {
-            connectedEdges[i].FireConnection();
+            connectedEdges[i].FireConnection(neuralNetwork,this);
         }
     }
 

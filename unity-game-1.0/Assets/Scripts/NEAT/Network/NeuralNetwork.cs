@@ -6,8 +6,11 @@ using UnityEngine;
 public class NeuralNetwork
 {
     public List<NeuralLayer> layers;
-    
-    //Option "r" for random connections
+
+    /// <summary>
+    /// Representation of connection of a neural network <br/>
+    /// with focus on possibility to mutate new edges, nodes etc.
+    /// </summary>
     public NeuralNetwork(int inputsAmount, int outputsAmount, string options)
     {
         Debug.Log("NeuralNetwork|NeuralNetwork(" + inputsAmount + ", " + outputsAmount + ")");
@@ -20,12 +23,12 @@ public class NeuralNetwork
 
         for (int i=0;i<inputsAmount;i++)
         {
-            layers[0].nodes.Add(new Node(this, id++, 1, 0));
+            layers[0].nodes.Add(new Node(id++, 1, 0));
         }
 
         for (int i = 0; i < outputsAmount; i++)
         {
-            layers[1].nodes.Add(new Node(this, id++, 0, 0));
+            layers[1].nodes.Add(new Node(id++, 0, 0));
         }
 
         if (options.Contains("r"))
@@ -43,7 +46,7 @@ public class NeuralNetwork
     //Normalize values, so we do not end up with some crazy values or even worse - NaN's
     public static float NormalizeNodeValue(float value)
     {
-        return 2 / Mathf.PI * Mathf.Atan(value);
+        return 2*10 / Mathf.PI * Mathf.Atan(value);
     }
 
     public NeuralLayer GetInputs()
@@ -56,14 +59,42 @@ public class NeuralNetwork
         return layers[layers.Count-1];
     }
 
-    //We have guarantee that count of layers will NOT change during Predict()
+    public Node GetNodeById(int Id)
+    {
+        foreach(NeuralLayer layer in layers)
+        {
+            foreach(Node node in layer.nodes)
+            {
+                if(node.GetId() == Id)
+                {
+                    return node;
+                }
+            }
+        }
+        return null;
+    }
+
+    //Finds node in specific layer. NOT THE NEXT ONE.
+    public Node GetNodeById(int Id, int layerId)
+    {
+        foreach (Node node in layers[layerId].nodes)
+        {
+            if (node.GetId() == Id)
+            {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    ///<summary>We have guarantee that count of layers will NOT change during Predict()</summary>
     public void Predict()
     {
         for(int i=0;i<layers.Count;i++)
         {
             for (int j = 0; j < layers[i].nodes.Count; j++)
             {
-                layers[i].nodes[j].InfluenceConnectedNodes();
+                layers[i].nodes[j].InfluenceConnectedNodes(this);
             }
         }
     }
@@ -74,6 +105,7 @@ public class NeuralNetwork
     }
 }
 
+///<summary> Layer of neurons. As simple as that.</summary>
 [System.Serializable]
 public class NeuralLayer
 {
