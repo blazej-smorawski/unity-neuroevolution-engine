@@ -5,28 +5,25 @@ using UnityEngine;
 
 public interface Mutational
 {
-    void Mutate();
+    void Mutate(NeuralNetwork neuralNetwork);
 }
 
-[System.Serializable]
 public class Node : Mutational
 {
-    [SerializeField]
     private int id;
-    [SerializeField]
-    private int layer;
-    [SerializeField]
     private float value;
-    [SerializeField]
-    private List<Edge> connectedEdges;
+    private List<Edge> outgoingEdges;
 
-    public Node(int id, int value, int layer)
+    //Mutations
+    public delegate void MutationDelegate(NeuralNetwork neuralNetwork);
+    private List<MutationDelegate> mutations;
+
+    public Node(int id, float value=0)
     {
         this.id = id;
         this.value = value;
-        this.layer = layer;
-
-        connectedEdges = new List<Edge>();
+        this.outgoingEdges = new List<Edge>();
+        this.mutations = new List<MutationDelegate> {ConnectToRandomNode};
     }
 
     public int GetId()
@@ -34,14 +31,24 @@ public class Node : Mutational
         return id;
     }
 
-    public int GetLayer()
-    {
-        return layer;
-    }
-
     public float GetValue()
     {
         return value;
+    }
+
+    public List<Edge> GetOutgoingEdges()
+    {
+        return outgoingEdges;
+    }
+
+    public void AddOutgoingEdge(Edge edge)
+    {
+        outgoingEdges.Add(edge);
+    }
+
+    public void RemoveOutgoingEdge(Edge edge)
+    {
+        outgoingEdges.Remove(edge);
     }
 
     public void AddValue(float addValue)
@@ -51,7 +58,9 @@ public class Node : Mutational
         value = NeuralNetwork.NormalizeNodeValue(value);
     }
 
-    //Not affected by smoothstep function!
+    ///<summary>
+    ///Not affected by smoothstep function!
+    ///</summary>
     public void SetValue(float setValue)
     {
         value = setValue;
@@ -59,9 +68,9 @@ public class Node : Mutational
 
     public bool IsConnectedWith(Node node)
     {
-        foreach(Edge edge in connectedEdges)
+        foreach(Edge edge in outgoingEdges)
         {
-            if(edge.EndsIn(node))
+            if(edge.EndsIn(node) && edge.IsEnabled())
             {
                 return true;
             }
@@ -69,27 +78,48 @@ public class Node : Mutational
         return false;
     }
 
-    public List<Edge> GetConnectedEdges()
+    public Edge GetEdgeWith(Node node)
     {
-        return connectedEdges;
+        foreach (Edge edge in outgoingEdges)
+        {
+            if (edge.EndsIn(node) && edge.IsEnabled())
+            {
+                return edge;
+            }
+        }
+        return null;
     }
 
-    //Connect this to node
-    public void Connect(Node node, float weight)
+    ///<summary>
+    /// Connect this ---> toNode
+    /// </summary>
+    public Edge Connect(int id,Node toNode, float weight)
     {
-        connectedEdges.Add(new Edge(id, node.GetId(), layer, weight));
+        Edge newEdge = new Edge(id, this, toNode, weight);
+        outgoingEdges.Add(newEdge);
+        return newEdge;
     }
 
+    /// <summary>
+    /// Node can only be activated once during one prediction
+    /// </summary>
+    /// <param name="neuralNetwork"></param>
     public void InfluenceConnectedNodes(NeuralNetwork neuralNetwork)
     {
-        for(int i=0;i<connectedEdges.Count;i++)
+        for (int i = 0; i < outgoingEdges.Count; i++)
         {
-            connectedEdges[i].FireConnection(neuralNetwork,this);
+            Debug.Log("NeuralNetwork|Node: " + GetId() + " -> Influencing connections");
+            outgoingEdges[i].FireConnection(neuralNetwork);
         }
     }
 
-    public void Mutate()
+    public void Mutate(NeuralNetwork neuralNetwork)
     {
+        mutations[UnityEngine.Random.Range(0, mutations.Count)](neuralNetwork);
+    }
 
+    public void ConnectToRandomNode(NeuralNetwork neuralNetwork)
+    {
+        neuralNetwork.ConnectNodeToRandom(this);
     }
 }

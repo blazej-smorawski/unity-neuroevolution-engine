@@ -3,21 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-
+/// <summary>
+/// More or less alright
+/// </summary>
 public class OrganismEditorWindow : EditorWindow
-{
-    Vector2 scrollPosition = Vector2.zero;
-
-    Rect windowRect = new Rect(50 + 50, 50, 50, 50);
-
+{   
     Organism organism;
-    NeuralNetwork neuralNetwork;
 
-    int inputsAmount = 1, outputsAmount = 1;
-    int xMargin = 100;
-    int yMargin = 150;
-    int xDelta = 150;
-    int yDelta = 75;
+    public bool usePoints;
+
+    private float _scale =1f;
+
+    public int _xMargin = 50;
+    public int _yMargin = 50;
+
+    public float xMargin
+    {
+        get {  return _xMargin; }
+        set {  _xMargin = (int)value; DrawNodes(); }
+    }
+
+    public float yMargin
+    {
+        get { return _yMargin; }
+        set { _yMargin = (int)value; DrawNodes(); }
+    }
+
+    public float scale
+    {
+        get { return _scale; }
+        set {  _scale = value; DrawNodes(); }
+    }
 
     List<VisualNode> nodes;
 
@@ -31,8 +47,6 @@ public class OrganismEditorWindow : EditorWindow
         EditorWindow.GetWindow(typeof(OrganismEditorWindow));
     }
 
-
-
     private void OnGUI()
     {
         if (Selection.activeGameObject)
@@ -40,35 +54,40 @@ public class OrganismEditorWindow : EditorWindow
             organism = Selection.activeGameObject.GetComponent<Organism>();
         }
 
-        if (organism)
+        if (organism!=null)
         {
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("Inputs Amount", GUILayout.MaxWidth(140));
-            inputsAmount = EditorGUILayout.IntField(inputsAmount, GUILayout.MaxWidth(40));
-            EditorGUILayout.EndHorizontal();
+            if (organism.brain != null)
+            {
+                GUILayout.Label(organism.brain.ToString(), GUILayout.MaxWidth(400));
+            }
 
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("Outputs Amount", GUILayout.MaxWidth(140));
-            outputsAmount = EditorGUILayout.IntField(outputsAmount, GUILayout.MaxWidth(40));
-            EditorGUILayout.EndHorizontal();
-
             if (GUILayout.Button("Generate Neural Network", GUILayout.MaxWidth(180)))
             {
-                organism.brain = new NeuralNetwork(inputsAmount, outputsAmount, "r");
+                organism.brain = new NeuralNetwork(organism.inputs, organism.outputs, organism.brainOptions);
+                DrawNodes();
             }
 
-            if (typeof(NeuralNetwork).IsSerializable && typeof(Node).IsSerializable && typeof(Edge).IsSerializable)
+            if (GUILayout.Button("Serialize", GUILayout.MaxWidth(180)))
             {
-                GUILayout.Label("NeuralNetwork is serializable", GUILayout.MaxWidth(180));
-
-                if (GUILayout.Button("Serialize", GUILayout.MaxWidth(180)))
-                {
-                    organism.brain.Serialize("");
-                }
+                organism.brain.Serialize("");
             }
-            else
+
+            if (GUILayout.Button("Reset ID's", GUILayout.MaxWidth(180)))
             {
-                GUILayout.Label("NeuralNetwork is NOT serializable", GUILayout.MaxWidth(180));
+                organism.brain.ResetId();
+            }
+
+            if (GUILayout.Button("Mutate Random Node", GUILayout.MaxWidth(180)))
+            {
+                organism.brain.MutateRandomNode();
+                DrawNodes();
+            }
+
+            if (GUILayout.Button("Mutate Random Edge", GUILayout.MaxWidth(180)))
+            {
+                organism.brain.MutateRandomEdge();
+                DrawNodes();
             }
 
             if (organism.brain != null)
@@ -87,7 +106,6 @@ public class OrganismEditorWindow : EditorWindow
                 if (nodes != null)
                 {
                     Handles.BeginGUI();
-                    //Handles.DrawBezier(windowRect.center, windowRect2.center, new Vector2(windowRect.xMax + 50f, windowRect.center.y), new Vector2(windowRect2.xMin - 50f, windowRect2.center.y), Color.red, null, 5f);
                     for(int i=0;i<edgeBeginnings.Count;i++)
                     {
                         Handles.DrawBezier(edgeBeginnings[i].center, edgeEnds[i].center, 
@@ -104,8 +122,13 @@ public class OrganismEditorWindow : EditorWindow
                         GUI.Box(nodes[i].nodeRect, nodes[i].content);
                     }
                 }
+
+                scale = EditorGUILayout.Slider(scale, .3f, 3);
+
+                yMargin = GUI.VerticalSlider(new Rect(nodes[nodes.Count-1].nodeRect.x+100,50,10,300), yMargin, 50.0f, 1000.0f);
+
+                EditorGUILayout.EndHorizontal();
                 EndWindows();
-                //windowRect = GUI.Window(0, windowRect, WindowFunction, "Box1");
             }
         }
         else
@@ -116,39 +139,54 @@ public class OrganismEditorWindow : EditorWindow
 
     private void DrawNodes()
     {
+        int xDelta = (int)(scale * 100);
+        int yDelta = (int)(scale * 50);
+        int xSize = (int)(scale * 50);
+        int ySize = (int)(scale * 50);
+        int layer = 0;
+
         nodes = new List<VisualNode>();
         edgeColours = new List<Color>();
         edgeBeginnings = new List<Rect>();
         edgeEnds = new List<Rect>();
 
-        int positionX = xMargin;
+        int positionX = (int)xMargin;
 
-        foreach (NeuralLayer neuralLayer in organism.brain.layers)
+        foreach (List<Node> neuralLayer in organism.brain.GetLayers())
         {
-            int positionY = yMargin;
-            foreach (Node node in neuralLayer.nodes)
+            int positionY = (int)yMargin + layer * 5;
+            foreach (Node node in neuralLayer)
             {
-                //Rect newRect = new Rect(positionX, positionY, 50, 50);
-                nodes.Add(new VisualNode(node, new Rect(positionX, positionY, 50, 50),
-                    new GUIContent("Node:" + node.GetId() + "\n->" + node.GetValue(), "Click to delete[not implemented]")));
+                nodes.Add(new VisualNode(node, new Rect(positionX, positionY, xSize, ySize),
+                    new GUIContent("N:" + node.GetId() + "\n->" + node.GetValue().ToString("0.00"), "Click to delete[not implemented]")));
 
                 positionY += yDelta;
             }
             positionX += xDelta;
+            layer++;
         }
 
         foreach (VisualNode begginingNode in nodes)
         {
             foreach (VisualNode endNode in nodes)
             {
-                if (begginingNode.node.IsConnectedWith(endNode.node))
+                Edge edge = begginingNode.node.GetEdgeWith(endNode.node);
+                if (edge != null)
                 {
                     edgeBeginnings.Add(begginingNode.nodeRect);
                     edgeEnds.Add(endNode.nodeRect);
-                    edgeColours.Add(Color.blue);//Add weight?
+                    if (edge.IsEnabled())
+                    {
+                        edgeColours.Add(new Color(0, 0, edge.GetWeight()/NeuralNetwork.maxValue));//Add weight?
+                    }
+                    else
+                    {
+                        edgeColours.Add(new Color(edge.GetWeight() / NeuralNetwork.maxValue, 0, 0));
+                    }
                 }
             }
         }
+        
     }
 
     public struct VisualNode
