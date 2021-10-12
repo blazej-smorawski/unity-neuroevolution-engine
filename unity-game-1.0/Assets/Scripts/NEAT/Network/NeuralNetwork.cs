@@ -50,14 +50,14 @@ public class NeuralNetwork : ISerializationCallbackReceiver
 
         foreach(string input in inputNames)
         {
-            Node newNode = new InputNode(tempId++, 1, input);
+            Node newNode = new InputNode(tempId++, 0, input);
             nodes.Add(newNode);
             inputs.Add(newNode);
         }
 
         foreach (string output in outputNames)
         {
-            Node newNode = new OutputNode(tempId++, 1, output);
+            Node newNode = new OutputNode(tempId++, 0, output);
             nodes.Add(newNode);
             outputs.Add(newNode);
         }
@@ -92,77 +92,12 @@ public class NeuralNetwork : ISerializationCallbackReceiver
             if(weakerIndex < weakerEdges.Count && strongerEdges[strongerIndex].GetId() > weakerEdges[weakerIndex].GetId() )//There might be a node in weakerEdges corresponding to strongerEdges[i]
             {
                 ++weakerIndex;
-                if (UnityEngine.Random.Range(0, 2) == 0)//Use connection from weaker parent
-                {
-                    Debug.Log("NeuralNetwork|Taking connection purely from weaker parent from id:" + weakerEdges[weakerIndex].GetFromNode().GetId() + " to:" + weakerEdges[weakerIndex].GetToNode().GetId());
-                    Node from = nodes.Find(x => x.GetId() == weakerEdges[weakerIndex].GetFromNode().GetId());
-                    Node to = nodes.Find(x => x.GetId() == weakerEdges[weakerIndex].GetToNode().GetId());
-
-                    if (from == null)
-                    {
-                        from = DuplicateNode(weakerEdges[weakerIndex].GetFromNode());
-                        nodes.Add(from);
-                    }
-
-                    if (to == null)
-                    {
-                        to = DuplicateNode(weakerEdges[weakerIndex].GetToNode());
-                        nodes.Add(to);
-                    }
-
-                    //Recreate connection as it was in weaker parent
-                    ConnectNodes(weakerEdges[weakerIndex].GetId(), from, to,
-                        weakerEdges[weakerIndex].GetWeight(),
-                        weakerEdges[weakerIndex].IsEnabled());
-                }
             }
             else if(weakerIndex < weakerEdges.Count && strongerEdges[strongerIndex].GetId() == weakerEdges[weakerIndex].GetId())//We've got a match
             {
                 Debug.Log("NeuralNetwork|Chosing randomly weight of connection:" + weakerEdges[weakerIndex].GetFromNode().GetId() + " to:" + weakerEdges[weakerIndex].GetToNode().GetId());
-                if (UnityEngine.Random.Range(0, 2) == 0)//Use connection from
-                {
-                    Node from = nodes.Find(x => x.GetId() == strongerEdges[strongerIndex].GetFromNode().GetId());
-                    Node to = nodes.Find(x => x.GetId() == strongerEdges[strongerIndex].GetToNode().GetId());
 
-                    if (from == null)
-                    {
-                        from = DuplicateNode(strongerEdges[strongerIndex].GetFromNode());
-                        nodes.Add(from);
-                    }
-
-                    if (to == null)
-                    {
-                        to = DuplicateNode(strongerEdges[strongerIndex].GetToNode());
-                        nodes.Add(to);
-                    }
-
-                    //Recreate connection as it was in stronger parent
-                    ConnectNodes(strongerEdges[strongerIndex].GetId(), from, to,
-                        strongerEdges[strongerIndex].GetWeight(),
-                        strongerEdges[strongerIndex].IsEnabled());
-                }
-                else//Copy connection from weaker parent
-                {
-                    Node from = nodes.Find(x => x.GetId() == weakerEdges[weakerIndex].GetFromNode().GetId());
-                    Node to = nodes.Find(x => x.GetId() == weakerEdges[weakerIndex].GetToNode().GetId());
-
-                    if (from == null)
-                    {
-                        from = DuplicateNode(weakerEdges[weakerIndex].GetFromNode());
-                        nodes.Add(from);
-                    }
-
-                    if (to == null)
-                    {
-                        to = DuplicateNode(weakerEdges[weakerIndex].GetToNode());
-                        nodes.Add(to);
-                    }
-
-                    //Recreate connection as it was in weaker parent
-                    ConnectNodes(weakerEdges[weakerIndex].GetId(), from, to,
-                        weakerEdges[weakerIndex].GetWeight(),
-                        weakerEdges[weakerIndex].IsEnabled());
-                }
+                RecreateConnectionFromEdge(UnityEngine.Random.Range(0, 2)==0 ? strongerEdges[strongerIndex] : weakerEdges[weakerIndex]);
 
                 ++weakerIndex;
                 ++strongerIndex;
@@ -170,26 +105,8 @@ public class NeuralNetwork : ISerializationCallbackReceiver
             else
             {
                 Debug.Log("NeuralNetwork|Taking connection purely from stronger parent from id:" + strongerEdges[strongerIndex].GetFromNode().GetId() + " to:" + strongerEdges[strongerIndex].GetToNode().GetId());
-                //Initialize nodes necessary for the connection
-                Node from = nodes.Find(x => x.GetId() == strongerEdges[strongerIndex].GetFromNode().GetId());
-                Node to = nodes.Find(x => x.GetId() == strongerEdges[strongerIndex].GetToNode().GetId());
 
-                if (from == null)
-                {
-                    from = DuplicateNode(strongerEdges[strongerIndex].GetFromNode());
-                    nodes.Add(from);
-                }
-
-                if (to == null)
-                {
-                    to = DuplicateNode(strongerEdges[strongerIndex].GetToNode());
-                    nodes.Add(to);
-                }
-
-                //Recreate connection as it was in stronger parent
-                ConnectNodes(strongerEdges[strongerIndex].GetId(), from, to,
-                    strongerEdges[strongerIndex].GetWeight(),
-                    strongerEdges[strongerIndex].IsEnabled());
+                RecreateConnectionFromEdge(strongerEdges[strongerIndex]);
 
                 ++strongerIndex;
             }
@@ -206,6 +123,24 @@ public class NeuralNetwork : ISerializationCallbackReceiver
         edges = new List<Edge>();
         inputs = new List<Node>();
         outputs = new List<Node>();
+    }
+
+    public float GetOutput(string name)
+    {
+        return outputs.Find(x => ((OutputNode)x).GetName() == name).GetValue();
+    }
+
+    public void SetInput(string name, float value)
+    {
+        Node inputNode = inputs.Find(x => ((InputNode)x).GetName() == name);
+        if(inputNode != null)
+        {
+            inputNode.SetValue(value);
+        }
+        else
+        {
+            Debug.Log("NeuralNetwork|Input not found!");
+        }
     }
 
     public Node GetNode(int id)
@@ -329,6 +264,29 @@ public class NeuralNetwork : ISerializationCallbackReceiver
         from.AddOutgoingEdge(newEdge);
         newEdge.SetEnabled(enabled);
         edges.Add(newEdge);
+    }
+
+    public void RecreateConnectionFromEdge(Edge edge)
+    {
+        Node from = nodes.Find(x => x.GetId() == edge.GetFromNode().GetId());
+        Node to = nodes.Find(x => x.GetId() == edge.GetToNode().GetId());
+
+        if (from == null)
+        {
+            from = DuplicateNode(edge.GetFromNode());
+            nodes.Add(from);
+        }
+
+        if (to == null)
+        {
+            to = DuplicateNode(edge.GetToNode());
+            nodes.Add(to);
+        }
+
+        //Randomly chhose from one of parents
+        ConnectNodes(edge.GetId(), from, to,
+            edge.GetWeight() ,
+            edge.IsEnabled());
     }
 
     public void ConnectNodeToRandom(Node node)
@@ -457,12 +415,12 @@ public class NeuralNetwork : ISerializationCallbackReceiver
             Node newNode;
             if (serializedNode.isInput)
             {
-                newNode = new InputNode(serializedNode.id, 1, serializedNode.name);
+                newNode = new InputNode(serializedNode.id, 0, serializedNode.name);
                 inputs.Add(newNode);
             }
             else if(serializedNode.isOutput)
             {
-                newNode = new OutputNode(serializedNode.id, 1, serializedNode.name);
+                newNode = new OutputNode(serializedNode.id, 0, serializedNode.name);
                 outputs.Add(newNode);
             }
             else
