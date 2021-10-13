@@ -10,8 +10,8 @@ public class Organism : MonoBehaviour
     public List<string> outputs;
     public string brainOptions;
     [Header("Reproduction")]
-    public float reproductionCooldown = 100f;
-    public float timeLeftToReproduction = 10f;
+    public float reproductionCooldown = 1f;
+    public float timeLeftToReproduction = 1f;
     [Header("Statistics")]
     public float fitness;
     [Header("Evaluators")]
@@ -28,7 +28,7 @@ public class Organism : MonoBehaviour
         Organism enteringOrganism = collision.gameObject.GetComponent<Organism>();
         if (enteringOrganism != null && CanReproduce() && enteringOrganism.CanReproduce())
         {
-            Reproduce(enteringOrganism);
+            //Reproduce(enteringOrganism);
         }
     }
 
@@ -57,6 +57,11 @@ public class Organism : MonoBehaviour
         }
     }
     
+    public void RestartEvaluators()
+    {
+        fitnessEvaluators.ForEach(x => x.Restart());
+    }
+
     public void ReadOutput()
     {
         brain.Predict();
@@ -84,15 +89,30 @@ public class Organism : MonoBehaviour
         timeLeftToReproduction = reproductionCooldown;
     }
 
-    public void Reproduce(Organism enteringOrganism)
+    public GameObject Reproduce(Organism enteringOrganism)
+    {
+        return Reproduce(enteringOrganism, transform.position);
+    }
+
+    public GameObject Reproduce(Organism enteringOrganism,Vector3 position)
     {
         StartReproductionCooldown();
         enteringOrganism.StartReproductionCooldown();
 
-        GameObject kid = Instantiate(gameObject, transform.position, transform.rotation);
+        GameObject kid = Instantiate(gameObject, position, transform.rotation);
         Organism kidOrganism = kid.GetComponent<Organism>();
-        kidOrganism.brain = new NeuralNetwork(enteringOrganism.brain, brain);//Right now more "active" organism is the stronger one
+        kidOrganism.fitness = 0;
+
+        if (fitness < enteringOrganism.fitness)
+        {
+            kidOrganism.brain = new NeuralNetwork(enteringOrganism.brain, brain);
+        }
+        else
+        {
+            kidOrganism.brain = new NeuralNetwork(brain, enteringOrganism.brain);
+        }
 
         kidOrganism.StartReproductionCooldown();
+        return kid;
     }
 }

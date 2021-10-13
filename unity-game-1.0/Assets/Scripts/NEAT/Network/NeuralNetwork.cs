@@ -352,6 +352,28 @@ public class NeuralNetwork : ISerializationCallbackReceiver
         nodes[UnityEngine.Random.Range(0, nodes.Count-outputs.Count)].Mutate(this);
     }
 
+    /// <summary>
+    /// Mutate neuralNetwork based on chance in (0f, 100f) <br/>
+    /// Repeated "attempts" times
+    /// </summary>
+    public void Mutate(float mutationChance, float edgeMutationCoefficient)
+    {
+        for(int i=0;i<nodes.Count+edges.Count;i++)
+        {
+            if(UnityEngine.Random.Range(0f,100f)<mutationChance)
+            {
+                if (UnityEngine.Random.Range(0f, 100f) < edgeMutationCoefficient)
+                {
+                    MutateRandomEdge();
+                }
+                else
+                {
+                    MutateRandomNode();
+                }
+            }
+        }
+    }
+
     public void RemoveEdge(Edge edge)
     {
         edges.Remove(edge);

@@ -113,7 +113,7 @@ public class Node : Mutational
         }
     }
 
-    public void Mutate(NeuralNetwork neuralNetwork)
+    public virtual void Mutate(NeuralNetwork neuralNetwork)
     {
         mutations[UnityEngine.Random.Range(0, mutations.Count)](neuralNetwork);
     }

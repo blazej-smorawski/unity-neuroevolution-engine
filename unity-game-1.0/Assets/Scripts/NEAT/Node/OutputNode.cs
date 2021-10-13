@@ -10,6 +10,16 @@ public class OutputNode : Node
     {
         this.name = name;
     }
+
+    /// <summary>
+    /// Output nodes do not mutate
+    /// </summary>
+    /// <param name="neuralNetwork"></param>
+    public override void Mutate(NeuralNetwork neuralNetwork)
+    {
+        return;
+    }
+
     public string GetName()
     {
         return name;

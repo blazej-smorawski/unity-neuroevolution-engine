@@ -8,14 +8,23 @@ public class PoleFitnessEvaluator : FitnessEvaluator
 
     public override void UpdateEvalutator(Organism organism)
     {
-        if(transform.rotation.eulerAngles.x > 85 || transform.rotation.eulerAngles.x < -85)
+        if(Vector3.Angle(transform.up, Vector3.up) > 30)
         {
             inRightPosition = false;
+        }
+        else
+        {
+            inRightPosition = true;
         }
 
         if(inRightPosition)
         {
             organism.fitness += Time.deltaTime;
         }
+    }
+
+    public override void Restart()
+    {
+        inRightPosition = true;
     }
 }
