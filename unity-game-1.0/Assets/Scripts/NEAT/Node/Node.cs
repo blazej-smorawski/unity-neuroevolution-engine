@@ -17,6 +17,7 @@ public class Node : Mutational
     //Mutations
     public delegate void MutationDelegate(NeuralNetwork neuralNetwork);
     private List<MutationDelegate> mutations;
+    private List<float> mutationChances;
 
     public Node(int id, float value=0)
     {
@@ -24,6 +25,7 @@ public class Node : Mutational
         this.value = value;
         this.outgoingEdges = new List<Edge>();
         this.mutations = new List<MutationDelegate> {ConnectToRandomNode, DisconnectFromRandomNode};
+        this.mutationChances = new List<float>() { 50f, 50f };
     }
 
     public int GetId()
@@ -115,7 +117,19 @@ public class Node : Mutational
 
     public virtual void Mutate(NeuralNetwork neuralNetwork)
     {
-        mutations[UnityEngine.Random.Range(0, mutations.Count)](neuralNetwork);
+        //mutations[UnityEngine.Random.Range(0, mutations.Count)](neuralNetwork);
+
+        float randomNumber = UnityEngine.Random.Range(0f, 100f);
+        float sum = 0;
+        for (int i = 0; i < mutationChances.Count; i++)
+        {
+            sum += mutationChances[i];
+            if (sum >= randomNumber)
+            {
+                mutations[i](neuralNetwork);//We trigger a random mutations
+                return;
+            }
+        }
     }
 
     public void ConnectToRandomNode(NeuralNetwork neuralNetwork)

@@ -349,6 +349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dc5d5badfb9f334bb09bc34a5296a26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  useOutput: 1
   brain:
     serializedNodes:
     - id: 0
@@ -371,6 +372,10 @@ MonoBehaviour:
       isInput: 0
       isOutput: 1
       name: Vertical
+    - id: 5
+      isInput: 0
+      isOutput: 1
+      name: Acceleration
     serializedEdges: []
     coroutineManager: {fileID: 0}
   inputs:
@@ -390,11 +395,13 @@ MonoBehaviour:
   inputEvaluators:
   - {fileID: 1613105990970809580}
   resetters: []
-  speedMultiplier: 2
-  maxMovementSpeed: 10
+  speedMultiplier: 5
+  maxMovementSpeed: 20
   rotationSpeed: 5
   acceleration: 0.3
   deadzone: 0.05
   horizontal: 0
   vertical: 0
   direction: {x: 0, y: 0, z: 0}
+  rigidbody: {fileID: 0}
+  movingTransform: {fileID: 1613105990860274536}

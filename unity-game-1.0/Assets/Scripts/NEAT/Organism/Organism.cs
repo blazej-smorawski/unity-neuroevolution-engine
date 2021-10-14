@@ -5,6 +5,7 @@ using UnityEngine;
 public class Organism : MonoBehaviour
 {
     [Header("Brain")]
+    public bool useOutput = true;
     public NeuralNetwork brain = null;//BRAIN MUST BE SETUP BEFORE RUNNING THE GAME!!!
     public List<string> inputs;
     public List<string> outputs;
@@ -27,6 +28,8 @@ public class Organism : MonoBehaviour
     public float horizontal;
     public float vertical;
     public Vector3 direction;
+    public Rigidbody rigidbody;
+    public Transform movingTransform;
 
     public void OnCollisionEnter(Collision collision)
     {
@@ -69,15 +72,27 @@ public class Organism : MonoBehaviour
 
     public void ReadOutput()
     {
-        brain.Predict();
-        AccelerateOrganism(brain.GetOutput("Horizontal"), brain.GetOutput("Vertical"), brain.GetOutput("Acceleration"));
+        if (useOutput)
+        {
+            brain.Predict();
+            AccelerateOrganism(brain.GetOutput("Horizontal"), brain.GetOutput("Vertical"), brain.GetOutput("Acceleration"));
+        }
+
         MoveOrganism();
     }
 
     public void MoveOrganism()
     {
+        direction = new Vector3(horizontal, 0f, vertical);
         //targetWalkBlendSpeed = direction.magnitude;//Target speed=<0,1> because it is only affecting blend tree and blends between idle(0) and run(1) with walk in between those two
-        transform.position += direction.normalized * speedMultiplier * Time.deltaTime;
+        if (rigidbody)
+        {
+            rigidbody.position += direction.normalized * speedMultiplier * Time.deltaTime;
+        }
+        else
+        {
+            movingTransform.position += direction.normalized * speedMultiplier * Time.deltaTime;
+        }
         
         if(direction!=Vector3.zero)
         {
@@ -112,8 +127,6 @@ public class Organism : MonoBehaviour
         {
             vertical -= acceleration * Time.deltaTime;
         }
-
-        direction = new Vector3(horizontal, 0f, vertical);
     }
 
     public bool CanReproduce()

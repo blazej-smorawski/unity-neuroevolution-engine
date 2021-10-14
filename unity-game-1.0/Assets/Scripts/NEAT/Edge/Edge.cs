@@ -17,6 +17,7 @@ public class Edge : Mutational
     //Mutations
     public delegate void MutationDelegate(NeuralNetwork neuralNetwork);
     private List<MutationDelegate> mutations;
+    private List<float> mutationChances;
 
     /// <summary>
     /// Representation of connection to a node. It should be rewritten, but it's quite challenging <br/>
@@ -30,7 +31,8 @@ public class Edge : Mutational
         this.from = from;
         this.to = to;   
         this.weight = weight;
-        this.mutations = new List<MutationDelegate>() { splitEdge, toggleEdge, addWeight, setWeight };
+        this.mutations = new List<MutationDelegate>() { splitEdge, toggleEdge, setWeight, addWeight, };
+        this.mutationChances = new List<float>() { 5,10,5,80 };
     }
 
     public int GetId()
@@ -83,7 +85,17 @@ public class Edge : Mutational
     /// </summary>
     public void Mutate(NeuralNetwork neuralNetwork)
     {
-        mutations[UnityEngine.Random.Range(0, mutations.Count)](neuralNetwork);//We trigger a random mutations
+        float randomNumber = UnityEngine.Random.Range(0f, 100f);
+        float sum = 0;
+        for (int i = 0; i < mutationChances.Count; i++)
+        {
+            sum+=mutationChances[i];
+            if (sum >= randomNumber)
+            {
+                mutations[i](neuralNetwork);//We trigger a random mutations
+                return;
+            }
+        }
     }
 
     public void splitEdge(NeuralNetwork neuralNetwork)
