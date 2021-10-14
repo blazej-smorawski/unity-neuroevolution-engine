@@ -44,7 +44,7 @@ public class Overseer : MonoBehaviour
 
     public void mutateOrganisms(List<Organism> organisms)
     {
-        foreach(Organism organism in organisms)
+        foreach (Organism organism in organisms)
         {
             organism.brain.Mutate(mutationChance, edgeMutationCoefficient);
         }
@@ -83,11 +83,17 @@ public class Overseer : MonoBehaviour
         }
     }
 
+    IEnumerator PauseCoroutine(float time)
+    {
+        Time.timeScale = 0;
+        yield return new WaitForSecondsRealtime(time);
+        Time.timeScale = 1;
+    }
+
     public void Start()
     {
         generationLeftTime = generationTime;
         spawnInitialGeneration();
-        StartCoroutine(EvolutionCoroutine());
     }
 
     public void Update()
@@ -104,9 +110,21 @@ public class Overseer : MonoBehaviour
             {
                 for (int j = 0; j < 0.1f * generationOrganismsCount; j++)
                 {
-                    GameObject kid = organisms[i].Reproduce(organisms[j], new Vector3(i * spawnOffset, 0, j * spawnOffset));
+                    //GameObject kid = organisms[i].Reproduce(organisms[j], new Vector3(i * spawnOffset, 0, j * spawnOffset));
+                    GameObject kid = Instantiate(organismPrefab, new Vector3(i * spawnOffset, 0, j * spawnOffset), transform.rotation);
                     kidOrganism = kid.GetComponent<Organism>();
+
+                    if (organisms[i].fitness > organisms[j].fitness)
+                    {
+                        kidOrganism.brain = new NeuralNetwork(organisms[i].brain, organisms[j].brain);
+                    }
+                    else
+                    {
+                        kidOrganism.brain = new NeuralNetwork(organisms[j].brain, organisms[i].brain);
+                    }
+
                     kidOrganism.RestartEvaluators();
+                    kidOrganism.Reset();
                     newOrganisms.Add(kidOrganism);
                 }
             }
@@ -131,7 +149,7 @@ public class Overseer : MonoBehaviour
             organisms = newOrganisms;
             newOrganisms = new List<Organism>();
             mutateOrganisms(organisms);
-
+            StartCoroutine(PauseCoroutine(1f));
         }
         else 
         {

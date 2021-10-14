@@ -23,7 +23,7 @@ public class Node : Mutational
         this.id = id;
         this.value = value;
         this.outgoingEdges = new List<Edge>();
-        this.mutations = new List<MutationDelegate> {ConnectToRandomNode};
+        this.mutations = new List<MutationDelegate> {ConnectToRandomNode, DisconnectFromRandomNode};
     }
 
     public int GetId()
@@ -121,5 +121,13 @@ public class Node : Mutational
     public void ConnectToRandomNode(NeuralNetwork neuralNetwork)
     {
         neuralNetwork.ConnectNodeToRandom(this);
+    }
+
+    public void DisconnectFromRandomNode(NeuralNetwork neuralNetwork)
+    {
+        if (outgoingEdges.Count != 0)
+        {
+            neuralNetwork.RemoveEdge(outgoingEdges[UnityEngine.Random.Range(0, outgoingEdges.Count)]);
+        }
     }
 }

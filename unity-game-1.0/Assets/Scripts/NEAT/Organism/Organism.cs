@@ -17,11 +17,16 @@ public class Organism : MonoBehaviour
     [Header("Evaluators")]
     public List<FitnessEvaluator> fitnessEvaluators;
     public List<InputEvaluator> inputEvaluators;
+    public List<Resetter> resetters;
     [Header("Actions")]
-    public float movementSpeed;
-    public float rotationSpeed;
+    public float speedMultiplier = 2f;
+    public float maxMovementSpeed = 10f;
+    public float rotationSpeed = 1f;
+    public float acceleration = .2f;
+    public float deadzone = 0.05f;
+    public float horizontal;
+    public float vertical;
     public Vector3 direction;
-    public Vector3 rotationOffset;
 
     public void OnCollisionEnter(Collision collision)
     {
@@ -32,7 +37,7 @@ public class Organism : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         foreach(FitnessEvaluator evaluator in fitnessEvaluators)
         {
@@ -65,18 +70,50 @@ public class Organism : MonoBehaviour
     public void ReadOutput()
     {
         brain.Predict();
-        MoveOrganism(brain.GetOutput("Horizontal"), brain.GetOutput("Vertical"));
+        AccelerateOrganism(brain.GetOutput("Horizontal"), brain.GetOutput("Vertical"), brain.GetOutput("Acceleration"));
+        MoveOrganism();
     }
 
-    public void MoveOrganism(float horizontal,float vertical)
+    public void MoveOrganism()
     {
-        direction = new Vector3(horizontal, 0f, vertical);
         //targetWalkBlendSpeed = direction.magnitude;//Target speed=<0,1> because it is only affecting blend tree and blends between idle(0) and run(1) with walk in between those two
-        transform.position += direction.normalized * movementSpeed * Time.deltaTime;
-        rotationOffset = new Vector3(0,1,0);//Move in world space???
+        transform.position += direction.normalized * speedMultiplier * Time.deltaTime;
+        
+        if(direction!=Vector3.zero)
+        {
+            Quaternion toRotation = Quaternion.LookRotation(direction,Vector3.up);
 
-        rotationOffset.y = 0f;//We do not want rotation in planes other than XZ
-        transform.forward += Vector3.Lerp(transform.forward, rotationOffset, Time.deltaTime * rotationSpeed);//Character is rotated towards specific axis
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed*Time.deltaTime);
+        }
+    }
+
+    private void AccelerateOrganism(float targetHorizontal, float targetVertical, float newAcceleration)
+    {
+        acceleration = newAcceleration;
+        targetHorizontal = Mathf.Max(maxMovementSpeed, targetHorizontal);
+        targetHorizontal = Mathf.Max(maxMovementSpeed, targetVertical);
+
+        if (horizontal<targetHorizontal*(1f-deadzone))
+        {
+            horizontal += acceleration * Time.deltaTime;
+        }
+
+        if (horizontal > targetHorizontal * (1f + deadzone))
+        {
+            horizontal -= acceleration * Time.deltaTime;
+        }
+
+        if (vertical < targetVertical * (1f - deadzone))
+        {
+            vertical += acceleration * Time.deltaTime;
+        }
+
+        if (vertical > targetVertical * (1f + deadzone))
+        {
+            vertical -= acceleration * Time.deltaTime;
+        }
+
+        direction = new Vector3(horizontal, 0f, vertical);
     }
 
     public bool CanReproduce()
@@ -114,5 +151,13 @@ public class Organism : MonoBehaviour
 
         kidOrganism.StartReproductionCooldown();
         return kid;
+    }
+
+    public void Reset()
+    {
+        foreach(Resetter resetter in resetters)
+        {
+            resetter.Reset();
+        }
     }
 }

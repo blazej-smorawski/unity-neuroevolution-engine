@@ -8,7 +8,7 @@ using UnityEngine;
 [System.Serializable]
 public class NeuralNetwork : ISerializationCallbackReceiver
 {
-    public static float maxValue = 2f;
+    public static float maxValue = 20f;
     public static float maxMutationAddValue = 0.1f;
     //Those fields WILL NOT be serialized by Unity automatically
     private List<Node> nodes;
@@ -344,7 +344,10 @@ public class NeuralNetwork : ISerializationCallbackReceiver
 
     public void MutateRandomEdge()
     {
-        edges[UnityEngine.Random.Range(0, edges.Count)].Mutate(this);
+        if (edges != null && edges.Count!=0)
+        {
+            edges[UnityEngine.Random.Range(0, edges.Count)].Mutate(this);
+        }
     }
 
     public void MutateRandomNode()
