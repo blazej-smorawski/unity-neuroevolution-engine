@@ -12,7 +12,7 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
+  companyName: "B\u0142a\u017Cej Smorawski"
   productName: unity-game-1.0
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
