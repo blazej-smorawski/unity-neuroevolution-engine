@@ -8,7 +8,7 @@ TerrainLayer:
   m_PrefabAsset: {fileID: 0}
   m_Name: Rocks Rubble
   m_DiffuseTexture: {fileID: 2800000, guid: f515cd0ec7798234aac6829669f569c7, type: 3}
-  m_NormalMapTexture: {fileID: 2800000, guid: 99f6c470646f3b9478cd11f02ee3b0b2, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: 574e1379c94130b46a45b5c680fb133b, type: 3}
   m_MaskMapTexture: {fileID: 2800000, guid: 1c0b0a5a61947fd45b4bc97396f7a93e, type: 3}
   m_TileSize: {x: 16, y: 16}
   m_TileOffset: {x: 0, y: 0}

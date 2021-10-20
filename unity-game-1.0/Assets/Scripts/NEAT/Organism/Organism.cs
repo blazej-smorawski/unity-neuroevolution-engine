@@ -28,8 +28,12 @@ public class Organism : MonoBehaviour
     public float horizontal;
     public float vertical;
     public Vector3 direction;
-    public Rigidbody rigidbody;
     public Transform movingTransform;
+    private Animator animator;
+    [Header("Actions")]
+    public bool overrideInputs = false;
+    public float horizontalOverride = -10.0f;
+    public float verticalOverride = -10.0f;
 
     public void OnCollisionEnter(Collision collision)
     {
@@ -75,7 +79,7 @@ public class Organism : MonoBehaviour
         if (useOutput)
         {
             brain.Predict();
-            AccelerateOrganism(brain.GetOutput("Horizontal"), brain.GetOutput("Vertical"), brain.GetOutput("Acceleration"));
+            AccelerateOrganism(brain.GetOutput("Horizontal"), brain.GetOutput("Vertical"), acceleration);
         }
 
         MoveOrganism();
@@ -83,7 +87,8 @@ public class Organism : MonoBehaviour
 
     public void MoveOrganism()
     {
-        direction = new Vector3(horizontal, 0f, vertical);
+        direction = movingTransform.forward * horizontal;
+        direction = Quaternion.AngleAxis(-rotationSpeed * vertical * Time.deltaTime, Vector3.up) * direction;
         //targetWalkBlendSpeed = direction.magnitude;//Target speed=<0,1> because it is only affecting blend tree and blends between idle(0) and run(1) with walk in between those two
         if (rigidbody)
         {
@@ -93,7 +98,13 @@ public class Organism : MonoBehaviour
         {
             movingTransform.position += direction.normalized * speedMultiplier * Time.deltaTime;
         }
-        
+
+        if (animator!=null && direction.magnitude > 0)
+        {
+            animator.SetBool("isWalking", true);
+            animator.SetFloat("speed", direction.magnitude);
+        }
+
         if(direction!=Vector3.zero)
         {
             Quaternion toRotation = Quaternion.LookRotation(direction,Vector3.up);
@@ -105,8 +116,17 @@ public class Organism : MonoBehaviour
     private void AccelerateOrganism(float targetHorizontal, float targetVertical, float newAcceleration)
     {
         acceleration = newAcceleration;
-        targetHorizontal = Mathf.Max(maxMovementSpeed, targetHorizontal);
-        targetHorizontal = Mathf.Max(maxMovementSpeed, targetVertical);
+
+        if (!overrideInputs)
+        {
+            targetHorizontal = Mathf.Max(maxMovementSpeed, targetHorizontal);
+            targetVertical = Mathf.Max(maxMovementSpeed, targetVertical);
+        }
+        else
+        {
+            targetHorizontal = horizontalOverride;
+            targetVertical = verticalOverride;
+        }
 
         if (horizontal<targetHorizontal*(1f-deadzone))
         {
@@ -172,5 +192,15 @@ public class Organism : MonoBehaviour
         {
             resetter.Reset();
         }
+    }
+
+    public void Start()
+    {
+        SetVariables();
+    }
+
+    private void SetVariables()
+    {
+        animator = gameObject.GetComponent<Animator>();
     }
 }
