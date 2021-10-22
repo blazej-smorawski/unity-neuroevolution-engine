@@ -14,7 +14,10 @@ public class Organism : MonoBehaviour
     public float reproductionCooldown = 1f;
     public float timeLeftToReproduction = 1f;
     [Header("Statistics")]
+    public bool dead = false;
     public float fitness;
+    public float food = 100f;
+    public float foodDecreaseRate = 1f;
     [Header("Evaluators")]
     public List<FitnessEvaluator> fitnessEvaluators;
     public List<InputEvaluator> inputEvaluators;
@@ -37,35 +40,50 @@ public class Organism : MonoBehaviour
 
     public void OnCollisionEnter(Collision collision)
     {
-        Organism enteringOrganism = collision.gameObject.GetComponent<Organism>();
-        if (enteringOrganism != null && CanReproduce() && enteringOrganism.CanReproduce())
+        if (!dead)
         {
-            //Reproduce(enteringOrganism);
+            Organism enteringOrganism = collision.gameObject.GetComponent<Organism>();
+            if (enteringOrganism != null && CanReproduce() && enteringOrganism.CanReproduce())
+            {
+                Reproduce(enteringOrganism);
+            }
+
+            Interactable interactableObject = collision.gameObject.GetComponent<Interactable>();
+            if (interactableObject != null)
+            {
+                interactableObject.Interact(this);
+            }
         }
     }
 
     private void FixedUpdate()
     {
-        foreach(FitnessEvaluator evaluator in fitnessEvaluators)
+        if (!dead)
         {
-            evaluator.UpdateEvalutator(this);
-        }
-
-        foreach(InputEvaluator evaluator in inputEvaluators)
-        {
-            evaluator.UpdateEvalutator(this);
-        }
-
-        ReadOutput();
-
-        if(timeLeftToReproduction!=0)
-        {
-            timeLeftToReproduction -= Time.deltaTime;
-
-            if(timeLeftToReproduction < 0f)
+            foreach (FitnessEvaluator evaluator in fitnessEvaluators)
             {
-                timeLeftToReproduction = 0f;
+                evaluator.UpdateEvalutator(this);
             }
+
+            foreach (InputEvaluator evaluator in inputEvaluators)
+            {
+                evaluator.UpdateEvalutator(this);
+            }
+
+            ReadOutput();
+
+            if (timeLeftToReproduction != 0)
+            {
+                timeLeftToReproduction -= Time.deltaTime;
+
+                if (timeLeftToReproduction < 0f)
+                {
+                    timeLeftToReproduction = 0f;
+                }
+            }
+
+            //Update stats
+            food -= foodDecreaseRate * Time.deltaTime;
         }
     }
     
@@ -89,15 +107,9 @@ public class Organism : MonoBehaviour
     {
         direction = movingTransform.forward * horizontal;
         direction = Quaternion.AngleAxis(-rotationSpeed * vertical * Time.deltaTime, Vector3.up) * direction;
-        //targetWalkBlendSpeed = direction.magnitude;//Target speed=<0,1> because it is only affecting blend tree and blends between idle(0) and run(1) with walk in between those two
-        if (rigidbody)
-        {
-            rigidbody.position += direction.normalized * speedMultiplier * Time.deltaTime;
-        }
-        else
-        {
-            movingTransform.position += direction.normalized * speedMultiplier * Time.deltaTime;
-        }
+        
+        movingTransform.position += direction.normalized * speedMultiplier * Time.deltaTime;
+        
 
         if (animator!=null && direction.magnitude > 0)
         {
@@ -119,8 +131,8 @@ public class Organism : MonoBehaviour
 
         if (!overrideInputs)
         {
-            targetHorizontal = Mathf.Max(maxMovementSpeed, targetHorizontal);
-            targetVertical = Mathf.Max(maxMovementSpeed, targetVertical);
+            targetHorizontal = Mathf.Min(maxMovementSpeed, targetHorizontal);
+            targetVertical = Mathf.Min(maxMovementSpeed, targetVertical);
         }
         else
         {
