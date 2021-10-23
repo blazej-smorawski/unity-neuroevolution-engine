@@ -13,23 +13,23 @@ public class SightEvaluator : InputEvaluator
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, sightRange))
         {
-            Debug.Log("Visible|Did Hit");
+            //Debug.Log("Visible|Did Hit");
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * sightRange, Color.yellow);
             hitObject = hit.collider.gameObject.GetComponent<VisibleObject>();
 
             if (hitObject!=null)
             {
-                Debug.Log("Visible|I See: "+hitObject.GetVisibleId());
-                organism.brain.SetInput("Sight " + inputNumber, hitObject.GetVisibleId());
-                organism.brain.SetInput("Distance " + inputNumber, hit.distance);
+                //Debug.Log("Visible|I See: "+hitObject.GetVisibleId());
+                organism.neuralNetwork.SetInput("Sight " + inputNumber, hitObject.GetVisibleId());
+                organism.neuralNetwork.SetInput("Distance " + inputNumber, hit.distance);
             }
         }
         else
         {
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * sightRange, Color.white);
-            Debug.Log("Visible|Did not Hit");
-            organism.brain.SetInput("Sight " + inputNumber, 0);
-            organism.brain.SetInput("Distance " + inputNumber, 0);
+            //Debug.Log("Visible|Did not Hit");
+            organism.neuralNetwork.SetInput("Sight " + inputNumber, 0);
+            organism.neuralNetwork.SetInput("Distance " + inputNumber, 0);
         }
     }
 }

@@ -1,3 +1,5 @@
+//#define NODE_DEBUG
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -55,7 +57,10 @@ public class Node : Mutational
 
     public void AddValue(float addValue)
     {
+        #if NODE_DEBUG
         Debug.Log("NeuralNetwork|Node:" + GetId() + "->" + value + "+" + addValue);
+        #endif
+
         value += addValue;
         value = NeuralNetwork.NormalizeNodeValue(value);
     }
@@ -110,7 +115,10 @@ public class Node : Mutational
     {
         for (int i = 0; i < outgoingEdges.Count; i++)
         {
+            #if NODE_DEBUG
             Debug.Log("NeuralNetwork|Node: " + GetId() + " -> Influencing connections");
+            #endif
+
             outgoingEdges[i].FireConnection(neuralNetwork);
         }
     }

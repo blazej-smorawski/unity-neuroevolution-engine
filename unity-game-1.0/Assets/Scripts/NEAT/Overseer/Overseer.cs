@@ -4,10 +4,16 @@ using UnityEngine;
 
 public class Overseer : MonoBehaviour
 {
+    [Header("World Properties")]
+    public float timeScale = 1f;
+
     [Header("Generation Info")]
     public float averageFitness = 0;
+    public float previousAverageFitness = 0;
     public int generationNumber = 0;
+
     [Header("Spawning Properties")]
+    public string startNeuralNetworkName = "";
     public GameObject organismPrefab;
     public List<Organism> organisms;
     public List<Organism> newOrganisms;
@@ -15,13 +21,11 @@ public class Overseer : MonoBehaviour
     public float spawnOffset = 10f;
     public float generationTime = 10f;
     public float generationLeftTime;
-    [Header("Mutation Properties")]
-    [Range(0.0f, 100.0f)]
-    public float mutationChance = 5f;
-    [Range(0.0f, 100.0f)]
-    public float edgeMutationCoefficient = 50f;//50 means 50% chance for edge mutation and 50% for node mutation
 
-    public void spawnInitialGeneration()
+    [Header("Mutation Properties")]
+    public Mutator mutator;
+
+    public void SpawnInitialGeneration()
     {
         GameObject spawnedOrganismGameObject;
         Organism spawnedOrganism;
@@ -35,19 +39,42 @@ public class Overseer : MonoBehaviour
             {
                 spawnedOrganismGameObject = Instantiate(organismPrefab, new Vector3(i * spawnOffset, 0, j * spawnOffset), transform.rotation);
                 spawnedOrganism = spawnedOrganismGameObject.GetComponent<Organism>();
-                spawnedOrganism.brain = new NeuralNetwork(spawnedOrganism.brain, spawnedOrganism.brain);
+
+                if (startNeuralNetworkName != "")
+                {
+                    spawnedOrganism.DeserializeBrain("Serialized Networks\\", startNeuralNetworkName);
+                }
+
                 organisms.Add(spawnedOrganism);
             }
         }
-        mutateOrganisms(organisms);
+
+        ResetOrganismNeuralNetwork(organisms[0]);
+        mutator.MutatePopulation(organisms,previousAverageFitness,averageFitness);
     }
 
-    public void mutateOrganisms(List<Organism> organisms)
+    /// <summary>
+    /// Calculates averageFitness and sets previousAverageFitness
+    /// </summary>
+    /// <param name="organisms"></param>
+    private void CalculateAverageFitness(List<Organism> organisms)
     {
+        previousAverageFitness = averageFitness;
+        averageFitness = 0;
         foreach (Organism organism in organisms)
         {
-            organism.brain.Mutate(mutationChance, edgeMutationCoefficient);
+            averageFitness += organism.fitness;
         }
+
+        if (organisms.Count != 0)
+        {
+            averageFitness /= organisms.Count;
+        }
+    }
+
+    private void ResetOrganismNeuralNetwork(Organism organism)
+    {
+        organism.neuralNetwork.ResetId();
     }
 
     private IEnumerator EvolutionCoroutine()
@@ -79,7 +106,7 @@ public class Overseer : MonoBehaviour
 
             organisms = newOrganisms;
             newOrganisms = new List<Organism>();
-            mutateOrganisms(organisms);
+            mutator.MutatePopulation(organisms,previousAverageFitness,averageFitness);
         }
     }
 
@@ -87,13 +114,13 @@ public class Overseer : MonoBehaviour
     {
         Time.timeScale = 0;
         yield return new WaitForSecondsRealtime(time);
-        Time.timeScale = 1;
+        Time.timeScale = timeScale;
     }
 
     public void Start()
     {
         generationLeftTime = generationTime;
-        spawnInitialGeneration();
+        SpawnInitialGeneration();
     }
 
     public void Update()
@@ -110,17 +137,16 @@ public class Overseer : MonoBehaviour
             {
                 for (int j = 0; j < 0.1f * generationOrganismsCount; j++)
                 {
-                    //GameObject kid = organisms[i].Reproduce(organisms[j], new Vector3(i * spawnOffset, 0, j * spawnOffset));
                     GameObject kid = Instantiate(organismPrefab, new Vector3(i * spawnOffset, 0, j * spawnOffset), transform.rotation);
                     kidOrganism = kid.GetComponent<Organism>();
 
                     if (organisms[i].fitness > organisms[j].fitness)
                     {
-                        kidOrganism.brain = new NeuralNetwork(organisms[i].brain, organisms[j].brain);
+                        kidOrganism.neuralNetwork = new NeuralNetwork(organisms[i].neuralNetwork, organisms[j].neuralNetwork);
                     }
                     else
                     {
-                        kidOrganism.brain = new NeuralNetwork(organisms[j].brain, organisms[i].brain);
+                        kidOrganism.neuralNetwork = new NeuralNetwork(organisms[j].neuralNetwork, organisms[i].neuralNetwork);
                     }
 
                     kidOrganism.RestartEvaluators();
@@ -129,16 +155,7 @@ public class Overseer : MonoBehaviour
                 }
             }
 
-            averageFitness = 0;
-            foreach (Organism organism in organisms)
-            {
-                averageFitness += organism.fitness;
-            }
-
-            if (organisms.Count != 0)
-            {
-                averageFitness /= organisms.Count;
-            }
+            CalculateAverageFitness(organisms);
 
             foreach (Organism organism in organisms)
             {
@@ -148,7 +165,7 @@ public class Overseer : MonoBehaviour
             generationLeftTime = generationTime;
             organisms = newOrganisms;
             newOrganisms = new List<Organism>();
-            mutateOrganisms(organisms);
+            mutator.MutatePopulation(organisms, previousAverageFitness, averageFitness);
             StartCoroutine(PauseCoroutine(1f));
         }
         else 

@@ -9,6 +9,7 @@ using UnityEditor;
 public class OrganismEditorWindow : EditorWindow
 {   
     Organism organism;
+    string organismName="";
 
     public bool usePoints;
 
@@ -56,45 +57,48 @@ public class OrganismEditorWindow : EditorWindow
 
         if (organism!=null)
         {
-            if (organism.brain != null)
+            EditorGUILayout.BeginHorizontal();
+            if (organism.neuralNetwork != null)
             {
-                GUILayout.Label(organism.brain.ToString(), GUILayout.MaxWidth(400));
+                GUILayout.Label(organism.neuralNetwork.ToString(), GUILayout.MaxWidth(400));
             }
 
+            organismName = EditorGUILayout.TextField("Network Name: ", organismName, GUILayout.MaxWidth(300));
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Generate Neural Network", GUILayout.MaxWidth(180)))
             {
-                organism.brain = new NeuralNetwork(organism.inputs, organism.outputs, organism.brainOptions);
+                organism.neuralNetwork = new NeuralNetwork(organism.inputs, organism.outputs, organism.brainOptions);
                 DrawNodes();
             }
 
             if (GUILayout.Button("Serialize", GUILayout.MaxWidth(180)))
             {
-                organism.brain.Serialize("");
+                organism.SerializeBrain("Serialized Networks\\", organismName);
             }
 
             if (GUILayout.Button("Reset ID's", GUILayout.MaxWidth(180)))
             {
-                organism.brain.ResetId();
+                organism.neuralNetwork.ResetId();
             }
 
             if (GUILayout.Button("Mutate Random Node", GUILayout.MaxWidth(180)))
             {
-                organism.brain.MutateRandomNode();
+                organism.neuralNetwork.MutateRandomNode();
                 DrawNodes();
             }
 
             if (GUILayout.Button("Mutate Random Edge", GUILayout.MaxWidth(180)))
             {
-                organism.brain.MutateRandomEdge();
+                organism.neuralNetwork.MutateRandomEdge();
                 DrawNodes();
             }
 
-            if (organism.brain != null)
+            if (organism.neuralNetwork != null)
             {
                 if (GUILayout.Button("Predict", GUILayout.MaxWidth(180)))
                 {
-                    organism.brain.Predict();
+                    organism.neuralNetwork.Predict();
                     DrawNodes();
                 }
 
@@ -125,7 +129,7 @@ public class OrganismEditorWindow : EditorWindow
 
                 scale = EditorGUILayout.Slider(scale, .3f, 3);
 
-                yMargin = GUI.VerticalSlider(new Rect(nodes[nodes.Count-1].nodeRect.x+100,50,10,300), yMargin, 50.0f, 1000.0f);
+                //yMargin = GUI.VerticalSlider(new Rect(nodes[nodes.Count-1].nodeRect.x+100,50,10,300), yMargin, 50.0f, 1000.0f);
 
                 EditorGUILayout.EndHorizontal();
                 EndWindows();
@@ -152,7 +156,7 @@ public class OrganismEditorWindow : EditorWindow
 
         int positionX = (int)xMargin;
 
-        foreach (List<Node> neuralLayer in organism.brain.GetLayers())
+        foreach (List<Node> neuralLayer in organism.neuralNetwork.GetLayers())
         {
             int positionY = (int)yMargin + layer * 5;
             foreach (Node node in neuralLayer)

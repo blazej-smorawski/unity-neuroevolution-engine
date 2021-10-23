@@ -1,12 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class Organism : MonoBehaviour
 {
     [Header("Brain")]
     public bool useOutput = true;
-    public NeuralNetwork brain = null;//BRAIN MUST BE SETUP BEFORE RUNNING THE GAME!!!
+    public NeuralNetwork neuralNetwork = null;//BRAIN MUST BE SETUP BEFORE RUNNING THE GAME!!!
     public List<string> inputs;
     public List<string> outputs;
     public string brainOptions;
@@ -96,8 +98,8 @@ public class Organism : MonoBehaviour
     {
         if (useOutput)
         {
-            brain.Predict();
-            AccelerateOrganism(brain.GetOutput("Horizontal"), brain.GetOutput("Vertical"), acceleration);
+            neuralNetwork.Predict();
+            AccelerateOrganism(neuralNetwork.GetOutput("Horizontal"), neuralNetwork.GetOutput("Vertical"), acceleration);
         }
 
         MoveOrganism();
@@ -187,15 +189,29 @@ public class Organism : MonoBehaviour
 
         if (fitness < enteringOrganism.fitness)
         {
-            kidOrganism.brain = new NeuralNetwork(enteringOrganism.brain, brain);
+            kidOrganism.neuralNetwork = new NeuralNetwork(enteringOrganism.neuralNetwork, neuralNetwork);
         }
         else
         {
-            kidOrganism.brain = new NeuralNetwork(brain, enteringOrganism.brain);
+            kidOrganism.neuralNetwork = new NeuralNetwork(neuralNetwork, enteringOrganism.neuralNetwork);
         }
 
         kidOrganism.StartReproductionCooldown();
         return kid;
+    }
+
+    public void SerializeBrain(string path, string name)
+    {
+        string json = JsonUtility.ToJson(neuralNetwork);
+        StreamWriter writer = File.CreateText(path+ name +"_neuralnetowork.json");
+        writer.WriteLine(json);
+        writer.Close();
+    }
+
+    public void DeserializeBrain(string path, string name)
+    {
+        string json = File.ReadAllText(path + name + "_neuralnetowork.json");
+        neuralNetwork = JsonUtility.FromJson<NeuralNetwork>(json);
     }
 
     public void Reset()

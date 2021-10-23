@@ -1,9 +1,12 @@
+//#define NEURAL_NETWORK_DEBUG
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Serialization;
 using UnityEngine;
+using UnityEngine.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 [System.Serializable]
 public class NeuralNetwork : ISerializationCallbackReceiver
@@ -28,23 +31,15 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     [SerializeField]
     private List<SerializedEdge> serializedEdges;
 
-    //Variables for Coroutines handling
-    public CoroutineManager coroutineManager;
-
     /// <summary>
     /// Representation of connection of a neural network <br/>
     /// with focus on possibility to mutate new edges, nodes etc.
     /// </summary>
     public NeuralNetwork(List<string> inputNames, List<string> outputNames, string options):this()
     {
+        #if NEURAL_NETWORK_DEBUG
         Debug.Log("NeuralNetwork|NeuralNetwork(" + inputNames.Count + ", " + outputNames.Count + ")");
-
-        coroutineManager = GameObject.FindObjectOfType<CoroutineManager>();
-
-        if (coroutineManager == null) 
-        {
-            Debug.Log("NeuralNetwork|CoroutineManager is missing");
-        }
+        #endif
 
         int tempId = 0;//We create this Id here, so input and output nodes have same id's across all networks
 
@@ -95,7 +90,9 @@ public class NeuralNetwork : ISerializationCallbackReceiver
             }
             else if(weakerIndex < weakerEdges.Count && strongerEdges[strongerIndex].GetId() == weakerEdges[weakerIndex].GetId())//We've got a match
             {
+                #if NEURAL_NETWORK_DEBUG
                 Debug.Log("NeuralNetwork|Chosing randomly weight of connection:" + weakerEdges[weakerIndex].GetFromNode().GetId() + " to:" + weakerEdges[weakerIndex].GetToNode().GetId());
+                #endif
 
                 RecreateConnectionFromEdge(UnityEngine.Random.Range(0, 2)==0 ? strongerEdges[strongerIndex] : weakerEdges[weakerIndex]);
 
@@ -104,7 +101,9 @@ public class NeuralNetwork : ISerializationCallbackReceiver
             }
             else
             {
+                #if NEURAL_NETWORK_DEBUG
                 Debug.Log("NeuralNetwork|Taking connection purely from stronger parent from id:" + strongerEdges[strongerIndex].GetFromNode().GetId() + " to:" + strongerEdges[strongerIndex].GetToNode().GetId());
+                #endif
 
                 RecreateConnectionFromEdge(strongerEdges[strongerIndex]);
 
@@ -118,7 +117,10 @@ public class NeuralNetwork : ISerializationCallbackReceiver
 
     public NeuralNetwork()
     {
+        #if NEURAL_NETWORK_DEBUG
         Debug.Log("NeuralNetwork|Running parametrless contstructor");
+        #endif
+
         nodes = new List<Node>();
         edges = new List<Edge>();
         inputs = new List<Node>();
@@ -139,7 +141,9 @@ public class NeuralNetwork : ISerializationCallbackReceiver
         }
         else
         {
+            #if NEURAL_NETWORK_DEBUG
             Debug.Log("NeuralNetwork|Input not found!");
+            #endif
         }
     }
 
@@ -209,14 +213,6 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     {
         edgeId = 0;
         nodeId = 0;
-    }
-
-    ///<summary>
-    ///Insert node in right place in list which corresponds to it's layer 
-    ///</summary>
-    public void CreateNewNode(float value)
-    {
-        
     }
 
     private Node DuplicateNode(Node node)
@@ -484,11 +480,7 @@ public class NeuralNetwork : ISerializationCallbackReceiver
 
     public void Serialize(string path)
     {
-        //OnBeforeSerialize();
-        //XmlSerializer serializer = new XmlSerializer(typeof(NeuralNetwork));
-        //StreamWriter writer = new StreamWriter(path+"NN.xml");
-        //serializer.Serialize(writer.BaseStream, this);
-        //writer.Close();
+
     }
 
     public override string ToString()

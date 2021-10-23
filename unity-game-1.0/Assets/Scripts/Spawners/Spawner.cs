@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
+    public List<GameObject> spawnedObjects;
     public GameObject spawnedObject;
     public int count = 0;
     public float radius = 100f;
@@ -23,9 +24,9 @@ public class Spawner : MonoBehaviour
                 a = temp;
             }
 
-            Vector3 randomPosition = new Vector3(b * radius * Mathf.Cos(2 * Mathf.PI * a / b), positionY, b * radius * Mathf.Sin(2 * Mathf.PI * a / b));
+            Vector3 randomPosition = new Vector3(b * radius * Mathf.Cos(2 * Mathf.PI * a / b) + transform.position.x, positionY, b * radius * Mathf.Sin(2 * Mathf.PI * a / b) + transform.position.z);
 
-            Instantiate(spawnedObject, randomPosition,Quaternion.identity);
+            spawnedObjects.Add(Instantiate(spawnedObject, randomPosition,Quaternion.identity));
         }
     }
 
@@ -33,6 +34,10 @@ public class Spawner : MonoBehaviour
     {
         while(true)
         {
+            foreach(GameObject spawnedObject in spawnedObjects)
+            {
+                Destroy(spawnedObject);
+            }
             Spawn();
             yield return new WaitForSeconds(timeInterval);
         }
