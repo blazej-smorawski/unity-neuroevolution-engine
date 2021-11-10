@@ -1,3 +1,5 @@
+//#define EDGE_DEBUG
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -102,7 +104,9 @@ public class Edge : Mutational
     {
         if (enabled)
         {
+#if DEBUG_PLUS
             Debug.Log("NeuralNetwork|New Node:" + from.GetId() + "-*-" + to.GetId());
+#endif
             neuralNetwork.SplitWithNewNode(this);
         }
     }

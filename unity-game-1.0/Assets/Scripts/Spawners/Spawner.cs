@@ -4,10 +4,13 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
+    public bool spawnOnInterval = false;
     public List<GameObject> spawnedObjects;
     public GameObject spawnedObject;
     public int count = 0;
     public float radius = 100f;
+    public float atPositionRadius = 10f;
+    public float atPositionOffsetY = 0.5f;
     public float positionY = 0f;
     public float timeInterval = 10f;
     public virtual void Spawn()
@@ -26,7 +29,28 @@ public class Spawner : MonoBehaviour
 
             Vector3 randomPosition = new Vector3(b * radius * Mathf.Cos(2 * Mathf.PI * a / b) + transform.position.x, positionY, b * radius * Mathf.Sin(2 * Mathf.PI * a / b) + transform.position.z);
 
-            spawnedObjects.Add(Instantiate(spawnedObject, randomPosition,Quaternion.identity));
+            SpawnAt(randomPosition);
+        }
+    }
+
+    public void SpawnAt(Vector3 position)
+    {
+        Vector3 randomVector = new Vector3(atPositionRadius,0,0);
+        randomVector = Quaternion.AngleAxis(UnityEngine.Random.Range(0f,360f), Vector3.up) * randomVector;
+        randomVector.x += position.x;
+        randomVector.y += position.y;
+        randomVector.z += position.z;
+        randomVector.y += atPositionOffsetY;
+        spawnedObjects.Add(Instantiate(spawnedObject, randomVector, Quaternion.identity));
+        //kekw
+
+    }
+
+    public void DestroySpawnedObjects()
+    {
+        foreach (GameObject spawnedObject in spawnedObjects)
+        {
+            Destroy(spawnedObject);
         }
     }
 
@@ -34,10 +58,6 @@ public class Spawner : MonoBehaviour
     {
         while(true)
         {
-            foreach(GameObject spawnedObject in spawnedObjects)
-            {
-                Destroy(spawnedObject);
-            }
             Spawn();
             yield return new WaitForSeconds(timeInterval);
         }
@@ -45,6 +65,9 @@ public class Spawner : MonoBehaviour
 
     public void Start()
     {
-        StartCoroutine(SpawnCoroutine());
+        if (spawnOnInterval)
+        {
+            StartCoroutine(SpawnCoroutine());
+        }
     }
 }

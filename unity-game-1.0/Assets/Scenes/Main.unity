@@ -563,10 +563,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c682f4a7ca2cd19449f8be59c2536677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnOnInterval: 0
   spawnedObjects: []
   spawnedObject: {fileID: 3019914704697234657, guid: 66cb149db4568284baee1efe529a9f66, type: 3}
   count: 10
   radius: 100
+  atPositionRadius: 10
+  atPositionOffsetY: 0.5
   positionY: 0
   timeInterval: 10000
 --- !u!4 &584702784
@@ -1007,18 +1010,29 @@ MonoBehaviour:
   timeScale: 2
   averageFitness: 0
   previousAverageFitness: 0
+  bestPreviousAverageFitness: 0
   generationNumber: 0
   startNeuralNetworkName: ork_mondry2
   organismPrefab: {fileID: 3019914704697234657, guid: 66cb149db4568284baee1efe529a9f66, type: 3}
+  generationOrganismsCount: 100
+  rowOrganismsCount: 10
+  spawnOffset: 40
+  generationTime: 32
+  generationLeftTime: 1
   organisms: []
   newOrganisms: []
-  generationOrganismsCount: 100
-  spawnOffset: 10
-  generationTime: 32
-  generationLeftTime: 32
+  spawners: []
+  atPositionSpawners:
+  - {fileID: 1178914306}
+  crossingOver:
+    maximumDistance: 5
+    excessCoefficient: 1
+    disjointCoefficient: 1
+    weightsDifferenceCoefficient: 0.3
+    networksReproductionFraction: 0.15
   mutator:
     mutationChance: 21.8
-    edgeMutationCoefficient: 59.3
+    edgeMutationCoefficient: 50
     fitnessChangeMultiplier: 1.05
     minimumFitnessChange: 0.2
 --- !u!4 &1011831756
@@ -1045,6 +1059,58 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 4109585100957563884, guid: 395c1c5a3302f9449a266271f2fe938e, type: 3}
   m_PrefabInstance: {fileID: 636237951}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1178914305
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1178914307}
+  - component: {fileID: 1178914306}
+  m_Layer: 0
+  m_Name: Food At Position Spawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1178914306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1178914305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c682f4a7ca2cd19449f8be59c2536677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnOnInterval: 0
+  spawnedObjects: []
+  spawnedObject: {fileID: 1627296023}
+  count: 400
+  radius: 100
+  atPositionRadius: 8
+  atPositionOffsetY: 0.5
+  positionY: 0.5
+  timeInterval: 1
+--- !u!4 &1178914307
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1178914305}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 33.8, y: 0.5, z: 46}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1248267241
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1522,7 +1588,7 @@ GameObject:
   - component: {fileID: 1627296025}
   - component: {fileID: 1627296024}
   - component: {fileID: 1627296029}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Food
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1541,7 +1607,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: deb5625a41fe76f48948c477816ab9c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visibleId: 1
+  visibleId: 2
 --- !u!65 &1627296025
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1632,55 +1698,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   foodAmount: 20
   addFitness: 1
---- !u!1 &1640261202
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1640261204}
-  - component: {fileID: 1640261203}
-  m_Layer: 0
-  m_Name: Food Spawner
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1640261203
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1640261202}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c682f4a7ca2cd19449f8be59c2536677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spawnedObjects: []
-  spawnedObject: {fileID: 1627296023}
-  count: 400
-  radius: 100
-  positionY: 0.5
-  timeInterval: 32
---- !u!4 &1640261204
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1640261202}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 33.8, y: 0.5, z: 46}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  lifetimeCoefficient: 0.1
 --- !u!4 &1646195598 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4489419329493842493, guid: 752bf07eb0cf9f840aab56035aca4923, type: 3}

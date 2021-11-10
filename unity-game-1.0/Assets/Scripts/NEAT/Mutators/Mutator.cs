@@ -20,17 +20,21 @@ public class Mutator
 
     }
 
-    public void MutatePopulation(List<Organism> organisms,float previousAverageFitness,float averageFitness)
+    public void MutatePopulation(List<Organism> organisms,float previousAverageFitness,float averageFitness, float bestPreviousAverageFitness)
     {
         if (Mathf.Abs(averageFitness - previousAverageFitness) > minimumFitnessChange)
         {
-            if (averageFitness > fitnessChangeMultiplier * previousAverageFitness)
+            if (averageFitness > fitnessChangeMultiplier * bestPreviousAverageFitness)
             {
                 mutationChance = Mathf.Sqrt(mutationChance);//Quite aggressive decrease in mutation step
             }
+            else if(averageFitness > fitnessChangeMultiplier * previousAverageFitness)
+            {
+                mutationChance = Mathf.Pow(mutationChance, Mathf.Pow(2f, 3f / 4f)/2f);
+            }
             else if (previousAverageFitness > fitnessChangeMultiplier * averageFitness)//It was better before
             {
-                mutationChance = Mathf.Pow(mutationChance, Mathf.Pow(2f, 1 / 4));//If population fails 4 times and succedes once, we come back to mutationChance from before those attempts
+                mutationChance = Mathf.Pow(mutationChance, Mathf.Pow(2f, 1f / 4f));//If population fails 4 times and succedes once, we come back to mutationChance from before those attempts
             }
             //if it did not increase nor decrease we do not alter mutationChance
         }

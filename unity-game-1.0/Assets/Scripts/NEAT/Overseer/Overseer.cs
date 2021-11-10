@@ -10,17 +10,24 @@ public class Overseer : MonoBehaviour
     [Header("Generation Info")]
     public float averageFitness = 0;
     public float previousAverageFitness = 0;
+    public float bestPreviousAverageFitness = 0;
     public int generationNumber = 0;
 
     [Header("Spawning Properties")]
     public string startNeuralNetworkName = "";
     public GameObject organismPrefab;
-    public List<Organism> organisms;
-    public List<Organism> newOrganisms;
     public int generationOrganismsCount;
+    public int rowOrganismsCount = 10;
     public float spawnOffset = 10f;
     public float generationTime = 10f;
     public float generationLeftTime;
+    public List<Organism> organisms;
+    public List<Organism> newOrganisms;
+    public List<Spawner> spawners;
+    public List<Spawner> atPositionSpawners;
+
+    [Header("Crossover Properties")]
+    public CrossingOver crossingOver;
 
     [Header("Mutation Properties")]
     public Mutator mutator;
@@ -38,6 +45,7 @@ public class Overseer : MonoBehaviour
             for (int j = 0; j < Mathf.Sqrt(generationOrganismsCount); j++)
             {
                 spawnedOrganismGameObject = Instantiate(organismPrefab, new Vector3(i * spawnOffset, 0, j * spawnOffset), transform.rotation);
+                TriggerAtPositionSpawners(new Vector3(i * spawnOffset, 0, j * spawnOffset));
                 spawnedOrganism = spawnedOrganismGameObject.GetComponent<Organism>();
 
                 if (startNeuralNetworkName != "")
@@ -50,7 +58,8 @@ public class Overseer : MonoBehaviour
         }
 
         ResetOrganismNeuralNetwork(organisms[0]);
-        mutator.MutatePopulation(organisms,previousAverageFitness,averageFitness);
+        mutator.MutatePopulation(organisms, previousAverageFitness, averageFitness, bestPreviousAverageFitness);
+        TriggerSpawners();
     }
 
     /// <summary>
@@ -63,12 +72,17 @@ public class Overseer : MonoBehaviour
         averageFitness = 0;
         foreach (Organism organism in organisms)
         {
-            averageFitness += organism.fitness;
+            averageFitness += organism.neuralNetwork.fitness;
         }
 
         if (organisms.Count != 0)
         {
             averageFitness /= organisms.Count;
+        }
+
+        if(previousAverageFitness > bestPreviousAverageFitness)
+        {
+            bestPreviousAverageFitness = previousAverageFitness;
         }
     }
 
@@ -82,31 +96,7 @@ public class Overseer : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(generationTime);
-            generationNumber++;
-
-            organisms.Sort((x, y) => y.fitness.CompareTo(x.fitness));
-
-            Organism kidOrganism;
-
-            for(int i=0;i<0.1f*generationOrganismsCount;i++)
-            {
-                for (int j = 0; j < 0.1f * generationOrganismsCount; j++)
-                {
-                    GameObject kid = organisms[i].Reproduce(organisms[j], new Vector3(i * spawnOffset, 0, j * spawnOffset));
-                    kidOrganism = kid.GetComponent<Organism>();
-                    kidOrganism.RestartEvaluators();
-                    newOrganisms.Add(kidOrganism);
-                }
-            }
-
-            foreach (Organism organism in organisms)
-            {
-                Destroy(organism.gameObject);
-            }
-
-            organisms = newOrganisms;
-            newOrganisms = new List<Organism>();
-            mutator.MutatePopulation(organisms,previousAverageFitness,averageFitness);
+            SpawnNextGeneration();
         }
     }
 
@@ -119,54 +109,86 @@ public class Overseer : MonoBehaviour
 
     public void Start()
     {
+        crossingOver = new CrossingOver();
+        Time.timeScale = timeScale;
         generationLeftTime = generationTime;
         SpawnInitialGeneration();
+    }
+
+    private void TriggerSpawners()
+    {
+        foreach(Spawner spawner in spawners)
+        {
+            spawner.Spawn();
+        }
+    }
+
+    private void DestroySpawnedObjects(List<Spawner> spawners)
+    {
+        foreach (Spawner spawner in spawners)
+        {
+            spawner.DestroySpawnedObjects();
+        }
+    }
+
+    private void TriggerAtPositionSpawners(Vector3 position)
+    {
+        foreach(Spawner spawner in atPositionSpawners)
+        {
+            spawner.SpawnAt(position);
+        }
+    }
+
+    private void SpawnNextGeneration()
+    {
+        DestroySpawnedObjects(atPositionSpawners);
+        DestroySpawnedObjects(spawners);
+
+        List<NeuralNetwork> networks = new List<NeuralNetwork>();
+        foreach (Organism organism in organisms)
+        {
+            networks.Add(organism.neuralNetwork);
+        }
+        networks = crossingOver.CrossOverNeuralNetworks(networks);
+
+        generationNumber++;
+
+        int organismNumber = 0;
+        Organism kidOrganism;
+
+        foreach (NeuralNetwork network in networks)
+        {
+            GameObject kid = Instantiate(organismPrefab, new Vector3(organismNumber % rowOrganismsCount * spawnOffset, 0, (int)(organismNumber / rowOrganismsCount) * spawnOffset), transform.rotation);
+            TriggerAtPositionSpawners(new Vector3(organismNumber % rowOrganismsCount * spawnOffset, 0, (int)(organismNumber / rowOrganismsCount) * spawnOffset));
+            kidOrganism = kid.GetComponent<Organism>();
+            kidOrganism.neuralNetwork = network;
+            kidOrganism.RestartEvaluators();
+            kidOrganism.Reset();
+            newOrganisms.Add(kidOrganism);
+            ++organismNumber;
+        }
+
+        CalculateAverageFitness(organisms);
+
+        foreach (Organism organism in organisms)
+        {
+            Destroy(organism.gameObject);
+        }
+
+        generationLeftTime = generationTime;
+        organisms = newOrganisms;
+        newOrganisms = new List<Organism>();
+        mutator.MutatePopulation(organisms, previousAverageFitness, averageFitness, bestPreviousAverageFitness);
+
+        TriggerSpawners();
+        StartCoroutine(PauseCoroutine(1f));
     }
 
     public void Update()
     {
         if(generationLeftTime<=0)
         {
-            generationNumber++;
-
-            organisms.Sort((x, y) => y.fitness.CompareTo(x.fitness));
-
-            Organism kidOrganism;
-
-            for (int i = 0; i < 0.1f * generationOrganismsCount; i++)
-            {
-                for (int j = 0; j < 0.1f * generationOrganismsCount; j++)
-                {
-                    GameObject kid = Instantiate(organismPrefab, new Vector3(i * spawnOffset, 0, j * spawnOffset), transform.rotation);
-                    kidOrganism = kid.GetComponent<Organism>();
-
-                    if (organisms[i].fitness > organisms[j].fitness)
-                    {
-                        kidOrganism.neuralNetwork = new NeuralNetwork(organisms[i].neuralNetwork, organisms[j].neuralNetwork);
-                    }
-                    else
-                    {
-                        kidOrganism.neuralNetwork = new NeuralNetwork(organisms[j].neuralNetwork, organisms[i].neuralNetwork);
-                    }
-
-                    kidOrganism.RestartEvaluators();
-                    kidOrganism.Reset();
-                    newOrganisms.Add(kidOrganism);
-                }
-            }
-
-            CalculateAverageFitness(organisms);
-
-            foreach (Organism organism in organisms)
-            {
-                Destroy(organism.gameObject);
-            }
-
-            generationLeftTime = generationTime;
-            organisms = newOrganisms;
-            newOrganisms = new List<Organism>();
-            mutator.MutatePopulation(organisms, previousAverageFitness, averageFitness);
-            StartCoroutine(PauseCoroutine(1f));
+            SpawnNextGeneration();
         }
         else 
         {

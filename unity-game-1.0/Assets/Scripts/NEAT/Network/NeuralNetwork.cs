@@ -11,8 +11,13 @@ using System.Runtime.Serialization.Formatters.Binary;
 [System.Serializable]
 public class NeuralNetwork : ISerializationCallbackReceiver
 {
+    //Public data
+    public int speciesIndex;
+    public float fitness;
+    public float adjustedFitness;
+    //Static data
     public static float maxValue = 20f;
-    public static float maxMutationAddValue = 0.1f;
+    public static float maxMutationAddValue = 2f;
     //Those fields WILL NOT be serialized by Unity automatically
     private List<Node> nodes;
     private List<Edge> edges;
@@ -158,7 +163,7 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     }
 
     /// <summary>
-    /// Layers for presentation
+    /// Get layers based on connections of nodes
     /// </summary>
     /// <returns>List of layers containing nodes</returns>
     public List<List<Node>> GetLayers()
@@ -236,9 +241,6 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     /// <summary>
     /// Create a new connection between two nodes
     /// </summary>
-    /// <param name="from"></param>
-    /// <param name="to"></param>
-    /// <param name="weight"></param>
     public void ConnectNodes(Node from, Node to, float weight)
     {
         Edge newEdge = new Edge(edgeId++, from, to, weight);
@@ -249,11 +251,6 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     /// <summary>
     /// This overload of ConnectNodes should only be used if we want to recreate connection, NOT to create a new connection
     /// </summary>
-    /// <param name="edgeId"></param>
-    /// <param name="from"></param>
-    /// <param name="to"></param>
-    /// <param name="weight"></param>
-    /// <param name="enabled"></param>
     public void ConnectNodes(int edgeId,Node from, Node to, float weight, bool enabled)
     {
         Edge newEdge = new Edge(edgeId, from, to, weight);
@@ -327,7 +324,6 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     /// 3)Connect new node to edge.to with weight edge.weight <br/>
     /// 4)Deactivate edge <br/>
     /// </summary>
-    /// <param name="edge">Edge to split</param>
     public void SplitWithNewNode(Edge edge)
     {
         Node newNode = new Node(nodeId++);
@@ -424,8 +420,10 @@ public class NeuralNetwork : ISerializationCallbackReceiver
         //Later on we create edges and
         //add those edges connections to the nodes
         //Sanity check
-        Debug.Log("NeuralNetwork|serializedNodes.count:"+serializedNodes.Count);
 
+#if NEURAL_NETWORK_DEBUG
+        Debug.Log("NeuralNetwork|serializedNodes.count:"+serializedNodes.Count);
+#endif
         nodes.Clear();
         edges.Clear();
         inputs.Clear(); 
@@ -459,7 +457,9 @@ public class NeuralNetwork : ISerializationCallbackReceiver
 
         //Nodes are set up properly excluding their outgoingEdges
 
+#if NEURAL_NETWORK_DEBUG
         Debug.Log("NeuralNetwork|serializedEdges.count:" + serializedEdges.Count);
+#endif
 
         foreach (SerializedEdge serializedEdge in serializedEdges)
         {
@@ -476,11 +476,6 @@ public class NeuralNetwork : ISerializationCallbackReceiver
 
             edges.Add(newEdge);
         }
-    }
-
-    public void Serialize(string path)
-    {
-
     }
 
     public override string ToString()

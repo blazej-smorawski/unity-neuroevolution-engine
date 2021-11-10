@@ -19,7 +19,7 @@ public class PoleFitnessEvaluator : FitnessEvaluator
 
         if(inRightPosition)
         {
-            organism.fitness += Time.deltaTime;
+            organism.neuralNetwork.fitness += Time.deltaTime;
         }
     }
 

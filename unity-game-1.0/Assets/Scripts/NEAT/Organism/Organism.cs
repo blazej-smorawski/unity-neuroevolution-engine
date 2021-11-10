@@ -17,7 +17,6 @@ public class Organism : MonoBehaviour
     public float timeLeftToReproduction = 1f;
     [Header("Statistics")]
     public bool dead = false;
-    public float fitness;
     public float food = 100f;
     public float foodDecreaseRate = 1f;
     [Header("Evaluators")]
@@ -25,8 +24,7 @@ public class Organism : MonoBehaviour
     public List<InputEvaluator> inputEvaluators;
     public List<Resetter> resetters;
     [Header("Actions")]
-    public float speedMultiplier = 2f;
-    public float maxMovementSpeed = 10f;
+    public float animationSpeedMultiplier = 0.1f;
     public float rotationSpeed = 1f;
     public float acceleration = .2f;
     public float deadzone = 0.05f;
@@ -35,7 +33,7 @@ public class Organism : MonoBehaviour
     public Vector3 direction;
     public Transform movingTransform;
     private Animator animator;
-    [Header("Actions")]
+    [Header("Overrides")]
     public bool overrideInputs = false;
     public float horizontalOverride = -10.0f;
     public float verticalOverride = -10.0f;
@@ -76,7 +74,7 @@ public class Organism : MonoBehaviour
 
             if (timeLeftToReproduction != 0)
             {
-                timeLeftToReproduction -= Time.deltaTime;
+                timeLeftToReproduction -= Time.fixedDeltaTime;
 
                 if (timeLeftToReproduction < 0f)
                 {
@@ -85,7 +83,7 @@ public class Organism : MonoBehaviour
             }
 
             //Update stats
-            food -= foodDecreaseRate * Time.deltaTime;
+            food -= foodDecreaseRate * Time.fixedDeltaTime;
         }
     }
     
@@ -99,7 +97,7 @@ public class Organism : MonoBehaviour
         if (useOutput)
         {
             neuralNetwork.Predict();
-            AccelerateOrganism(neuralNetwork.GetOutput("Horizontal"), neuralNetwork.GetOutput("Vertical"), acceleration);
+            AccelerateOrganism(neuralNetwork.GetOutput("Horizontal")/10, neuralNetwork.GetOutput("Vertical")/10, acceleration);
         }
 
         MoveOrganism();
@@ -109,14 +107,15 @@ public class Organism : MonoBehaviour
     {
         direction = movingTransform.forward * horizontal;
         direction = Quaternion.AngleAxis(-rotationSpeed * vertical * Time.deltaTime, Vector3.up) * direction;
-        
-        movingTransform.position += direction.normalized * speedMultiplier * Time.deltaTime;
+
+        movingTransform.position += direction * Time.deltaTime;
         
 
         if (animator!=null && direction.magnitude > 0)
         {
             animator.SetBool("isWalking", true);
-            animator.SetFloat("speed", direction.magnitude);
+            animator.SetFloat("speed", horizontal * animationSpeedMultiplier);
+
         }
 
         if(direction!=Vector3.zero)
@@ -133,8 +132,8 @@ public class Organism : MonoBehaviour
 
         if (!overrideInputs)
         {
-            targetHorizontal = Mathf.Min(maxMovementSpeed, targetHorizontal);
-            targetVertical = Mathf.Min(maxMovementSpeed, targetVertical);
+            //targetHorizontal = Mathf.Min(maxMovementSpeed, targetHorizontal);
+            //targetVertical = Mathf.Min(maxMovementSpeed, targetVertical);
         }
         else
         {
@@ -185,9 +184,8 @@ public class Organism : MonoBehaviour
 
         GameObject kid = Instantiate(gameObject, position, transform.rotation);
         Organism kidOrganism = kid.GetComponent<Organism>();
-        kidOrganism.fitness = 0;
 
-        if (fitness < enteringOrganism.fitness)
+        if (neuralNetwork.fitness < enteringOrganism.neuralNetwork.fitness)
         {
             kidOrganism.neuralNetwork = new NeuralNetwork(enteringOrganism.neuralNetwork, neuralNetwork);
         }
@@ -196,6 +194,7 @@ public class Organism : MonoBehaviour
             kidOrganism.neuralNetwork = new NeuralNetwork(neuralNetwork, enteringOrganism.neuralNetwork);
         }
 
+        kidOrganism.neuralNetwork.fitness = 0;
         kidOrganism.StartReproductionCooldown();
         return kid;
     }
