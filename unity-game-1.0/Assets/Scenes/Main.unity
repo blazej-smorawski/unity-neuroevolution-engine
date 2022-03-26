@@ -1012,8 +1012,8 @@ MonoBehaviour:
   previousAverageFitness: 0
   bestPreviousAverageFitness: 0
   generationNumber: 0
-  startNeuralNetworkName: ork_mondry2
-  organismPrefab: {fileID: 3019914704697234657, guid: 66cb149db4568284baee1efe529a9f66, type: 3}
+  startNeuralNetworkName: 
+  organismPrefab: {fileID: 1613105991017719386, guid: 6dfb2a1a6730e9342aceb3fe0277457b, type: 3}
   generationOrganismsCount: 100
   rowOrganismsCount: 10
   spawnOffset: 40

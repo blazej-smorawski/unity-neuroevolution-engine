@@ -143,13 +143,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1613105990970809572}
-  m_LocalRotation: {x: -0.003085367, y: -0.7071001, z: -0.003085367, w: 0.7071001}
+  m_LocalRotation: {x: -0.004363368, y: 0, z: 0, w: 0.9999905}
   m_LocalPosition: {x: 0, y: 2.1, z: 0}
   m_LocalScale: {x: 0.2, y: 1, z: 0.2}
   m_Children: []
   m_Father: {fileID: 1613105991017719385}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: -0.5, y: -90, z: 0}
+  m_LocalEulerAnglesHint: {x: -0.5, y: 0, z: 0}
 --- !u!33 &1613105990970809583
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -350,34 +350,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   useOutput: 1
-  brain:
-    serializedNodes:
-    - id: 0
-      isInput: 1
-      isOutput: 0
-      name: Angle X
-    - id: 1
-      isInput: 1
-      isOutput: 0
-      name: Angle Y
-    - id: 2
-      isInput: 1
-      isOutput: 0
-      name: Angle Z
-    - id: 3
-      isInput: 0
-      isOutput: 1
-      name: Horizontal
-    - id: 4
-      isInput: 0
-      isOutput: 1
-      name: Vertical
-    - id: 5
-      isInput: 0
-      isOutput: 1
-      name: Acceleration
+  neuralNetwork:
+    speciesIndex: 0
+    fitness: 0
+    adjustedFitness: 0
+    serializedNodes: []
     serializedEdges: []
-    coroutineManager: {fileID: 0}
   inputs:
   - Angle X
   - Angle Y
@@ -389,19 +367,22 @@ MonoBehaviour:
   brainOptions: 
   reproductionCooldown: 1
   timeLeftToReproduction: 1
-  fitness: 0
+  dead: 0
+  food: 100
+  foodDecreaseRate: 1
   fitnessEvaluators:
   - {fileID: 1613105990970809581}
   inputEvaluators:
   - {fileID: 1613105990970809580}
   resetters: []
-  speedMultiplier: 5
-  maxMovementSpeed: 20
+  animationSpeedMultiplier: 0.1
   rotationSpeed: 5
   acceleration: 0.3
   deadzone: 0.05
   horizontal: 0
   vertical: 0
   direction: {x: 0, y: 0, z: 0}
-  rigidbody: {fileID: 0}
   movingTransform: {fileID: 1613105990860274536}
+  overrideInputs: 0
+  horizontalOverride: -10
+  verticalOverride: -10
