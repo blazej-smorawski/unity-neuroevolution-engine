@@ -104,7 +104,7 @@ public class Edge : Mutational
     {
         if (enabled)
         {
-#if DEBUG_PLUS
+#if EDGE_DEBUG
             Debug.Log("NeuralNetwork|New Node:" + from.GetId() + "-*-" + to.GetId());
 #endif
             neuralNetwork.SplitWithNewNode(this);
@@ -127,7 +127,7 @@ public class Edge : Mutational
 
     public void addWeight(NeuralNetwork neuralNetwork)
     {
-        weight+=UnityEngine.Random.Range(-NeuralNetwork.maxMutationAddValue, NeuralNetwork.maxMutationAddValue);
+        weight += UnityEngine.Random.Range(-NeuralNetwork.maxMutationAddValue, NeuralNetwork.maxMutationAddValue);
     }
 
     public void setWeight(NeuralNetwork neuralNetwork)
@@ -136,7 +136,7 @@ public class Edge : Mutational
     }
 
     /// <summary>
-    /// We fire connection to node with to Node additively.
+    /// We fire the connection, so "to" value is updated based on "from" value.
     /// </summary>
     public void FireConnection(NeuralNetwork neuralNetwork)
     {

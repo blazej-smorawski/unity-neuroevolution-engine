@@ -11,7 +11,7 @@ public class Organism : MonoBehaviour
     public NeuralNetwork neuralNetwork = null;//BRAIN MUST BE SETUP BEFORE RUNNING THE GAME!!!
     public List<string> inputs;
     public List<string> outputs;
-    public string brainOptions;
+    public string neuralNetworkOptions;
     [Header("Reproduction")]
     public float reproductionCooldown = 1f;
     public float timeLeftToReproduction = 1f;
@@ -122,7 +122,7 @@ public class Organism : MonoBehaviour
         {
             Quaternion toRotation = Quaternion.LookRotation(direction,Vector3.up);
 
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed*Time.deltaTime);
+            movingTransform.rotation = Quaternion.RotateTowards(movingTransform.rotation, toRotation, rotationSpeed*Time.deltaTime);
         }
     }
 
@@ -211,6 +211,11 @@ public class Organism : MonoBehaviour
     {
         string json = File.ReadAllText(path + name + "_neuralnetowork.json");
         neuralNetwork = JsonUtility.FromJson<NeuralNetwork>(json);
+    }
+
+    public void GenerateNeuralNetwork()
+    {
+        neuralNetwork = new NeuralNetwork(inputs, outputs, neuralNetworkOptions);
     }
 
     public void Reset()

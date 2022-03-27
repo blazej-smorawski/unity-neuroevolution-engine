@@ -68,7 +68,7 @@ public class OrganismEditorWindow : EditorWindow
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Generate Neural Network", GUILayout.MaxWidth(180)))
             {
-                organism.neuralNetwork = new NeuralNetwork(organism.inputs, organism.outputs, organism.brainOptions);
+                organism.GenerateNeuralNetwork();
                 DrawNodes();
             }
 

@@ -326,6 +326,7 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     /// </summary>
     public void SplitWithNewNode(Edge edge)
     {
+        Debug.Log(nodeId);
         Node newNode = new Node(nodeId++);
         ConnectNodes(edge.GetFromNode(), newNode, 1);
         ConnectNodes(newNode, edge.GetToNode(), edge.GetWeight());

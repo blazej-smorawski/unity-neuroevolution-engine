@@ -32,6 +32,9 @@ public class Overseer : MonoBehaviour
     [Header("Mutation Properties")]
     public Mutator mutator;
 
+    ///<summary>
+    ///Spawn first generation of organisms, set organismPrefab brain to new NeuralNetwork if needed
+    ///</summary>
     public void SpawnInitialGeneration()
     {
         GameObject spawnedOrganismGameObject;
@@ -45,19 +48,39 @@ public class Overseer : MonoBehaviour
             for (int j = 0; j < Mathf.Sqrt(generationOrganismsCount); j++)
             {
                 spawnedOrganismGameObject = Instantiate(organismPrefab, new Vector3(i * spawnOffset, 0, j * spawnOffset), transform.rotation);
+                /*
+                 * Trigger all spawners that spawn an object for every spawned organism.
+                 * For example, spawning food for orcs
+                 */
                 TriggerAtPositionSpawners(new Vector3(i * spawnOffset, 0, j * spawnOffset));
                 spawnedOrganism = spawnedOrganismGameObject.GetComponent<Organism>();
 
+                /*
+                 * Generate a new NeuralNetwork
+                 * TODO: I don't like this, but right now I haven't got
+                 * any idea on how to make it better, because the
+                 * serialization is not working the way i'd like to
+                 */
                 if (startNeuralNetworkName != "")
                 {
                     spawnedOrganism.DeserializeBrain("Serialized Networks\\", startNeuralNetworkName);
+                }
+                else
+                {
+                    /*
+                     * We have to be careful with code such as this,
+                     * because there is a risk that id's of nodes will
+                     * be misaligned i.e input/output nodes across all networks
+                     * will have different id's even though they are the same
+                     * nodes - serving the same purpose
+                     */
+                    spawnedOrganism.GenerateNeuralNetwork();
                 }
 
                 organisms.Add(spawnedOrganism);
             }
         }
 
-        ResetOrganismNeuralNetwork(organisms[0]);
         mutator.MutatePopulation(organisms, previousAverageFitness, averageFitness, bestPreviousAverageFitness);
         TriggerSpawners();
     }
@@ -86,6 +109,10 @@ public class Overseer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Reset id's for organism's NeuralNetwork
+    /// </summary>
+    /// <param name="organism"></param>
     private void ResetOrganismNeuralNetwork(Organism organism)
     {
         organism.neuralNetwork.ResetId();
@@ -147,8 +174,15 @@ public class Overseer : MonoBehaviour
         List<NeuralNetwork> networks = new List<NeuralNetwork>();
         foreach (Organism organism in organisms)
         {
+            /*
+             * We put all networks in a list
+             */
             networks.Add(organism.neuralNetwork);
         }
+        /*
+         * Now we swap it with a new list which contains
+         * newly reproduced networks
+         */
         networks = crossingOver.CrossOverNeuralNetworks(networks);
 
         generationNumber++;
