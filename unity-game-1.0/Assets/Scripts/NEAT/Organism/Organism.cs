@@ -97,7 +97,16 @@ public class Organism : MonoBehaviour
         if (useOutput)
         {
             neuralNetwork.Predict();
-            AccelerateOrganism(neuralNetwork.GetOutput("Horizontal")/10, neuralNetwork.GetOutput("Vertical")/10, acceleration);
+
+            float forward = Mathf.Max(neuralNetwork.GetOutput("Forward") / 10, 0);
+            float backward = Mathf.Max(neuralNetwork.GetOutput("Backward") / 10, 0);
+            float left = Mathf.Max(neuralNetwork.GetOutput("Left") / 10, 0);
+            float right = Mathf.Max(neuralNetwork.GetOutput("Right") / 10, 0);
+
+            float targetVertical = forward > backward ? forward : -backward;
+            float targetHorizontal = right > left ? right : -left;
+
+            AccelerateOrganism(targetHorizontal, targetVertical, acceleration);
         }
 
         MoveOrganism();
@@ -105,8 +114,8 @@ public class Organism : MonoBehaviour
 
     public void MoveOrganism()
     {
-        direction = movingTransform.forward * horizontal;
-        direction = Quaternion.AngleAxis(-rotationSpeed * vertical * Time.deltaTime, Vector3.up) * direction;
+        direction = movingTransform.forward * vertical;
+        direction = Quaternion.AngleAxis(-rotationSpeed * horizontal * Time.deltaTime, Vector3.up) * direction;
 
         movingTransform.position += direction * Time.deltaTime;
         
@@ -114,7 +123,7 @@ public class Organism : MonoBehaviour
         if (animator!=null && direction.magnitude > 0)
         {
             animator.SetBool("isWalking", true);
-            animator.SetFloat("speed", horizontal * animationSpeedMultiplier);
+            animator.SetFloat("speed", direction.magnitude * animationSpeedMultiplier);
 
         }
 

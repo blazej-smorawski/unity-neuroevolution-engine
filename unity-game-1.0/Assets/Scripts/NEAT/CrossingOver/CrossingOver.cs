@@ -6,7 +6,8 @@ using UnityEngine;
 public class CrossingOver
 {
     [Header("Crossing Over Properties")]
-    [Range(0.1f, 100.0f)]
+    [Range(0.1f, 10.0f)]
+    public int eliteCount = 7;
     public float maximumDistance = 5f;// Surely needs some tweaking
     public float excessCoefficient = 1f;
     public float disjointCoefficient = 1f;
@@ -67,11 +68,18 @@ public class CrossingOver
             ++n2Index;
         }
 
-        foreach (float distance in distances)
+        if (distances.Count > 0)
         {
-            averageWeightsDistance += distance;
+            foreach (float distance in distances)
+            {
+                averageWeightsDistance += distance;
+            }
+            averageWeightsDistance /= (float)(distances.Count);
         }
-        averageWeightsDistance /= (float)(distances.Count);
+        else
+        {
+            averageWeightsDistance = 0;
+        }
 
         return
             (excessCoefficient * excess / N) +
@@ -91,26 +99,51 @@ public class CrossingOver
 
     public List<NeuralNetwork> CrossOverNeuralNetworks(in List<NeuralNetwork> neuralNetworks)// in works like const in C++
     {
-        List<List<NeuralNetwork>> species = new List<List<NeuralNetwork>>();
-        species.Add(new List<NeuralNetwork>());
-        List<int> speciesCount = new List<int> { 0 };
-        List<float> adjustedFitnessesSums = new List<float>() { 0 };
-        int speciesIndex = 0;
+        List<List<NeuralNetwork>> speciesList = new List<List<NeuralNetwork>>();
+        List<int> speciesCount = new List<int>();
+        List<float> adjustedFitnessesSums = new List<float>(); // Sums for each species
+        float adjustedFitnessesSum = 0; // Sum for all networks
 
-        //We group neuralNetworks in to species
+        neuralNetworks.Sort((x, y) => y.fitness.CompareTo(x.fitness));
+        for (int i = 0; i< eliteCount; i++)
+        {
+            neuralNetworks[i].elite = true;
+        }
+        for(int i= eliteCount; i<neuralNetworks.Count; i++)
+        {
+            neuralNetworks[i].elite = false;
+        }
+
+        // We group neuralNetworks in to species
         foreach (NeuralNetwork neuralNetwork in neuralNetworks)
         {
-            if (species[speciesIndex].Find(x => CalculateDistanceBetweenNetworks(x, neuralNetwork) > maximumDistance) != null) // There is network in species which is not compatible with neuralNetwork
+            int speciesIndex;
+            NeuralNetwork sibling = null;
+            for(speciesIndex = 0; speciesIndex < speciesList.Count; speciesIndex++)
             {
-                ++speciesIndex;// We create a new species
-                species.Add(new List<NeuralNetwork>());
+                // NeuralNetwork close to the neuralNetwork
+                sibling = speciesList[speciesIndex].Find(x => CalculateDistanceBetweenNetworks(x, neuralNetwork) < maximumDistance);
+                if(sibling != null)
+                {
+                    break;
+                }
+            }
+
+            if (sibling == null) // There is no network sibling network which means that we must create a new species
+            {
+                speciesList.Add(new List<NeuralNetwork>());
                 speciesCount.Add(0);
                 adjustedFitnessesSums.Add(0);
+                speciesIndex = speciesList.Count-1; // New species is last in the list
+            }
+            else
+            {
+                speciesIndex = sibling.speciesIndex;
             }
 
             neuralNetwork.speciesIndex = speciesIndex;
             ++speciesCount[speciesIndex];
-            species[speciesIndex].Add(neuralNetwork);
+            speciesList[speciesIndex].Add(neuralNetwork);
         }
 
         // Networks are split into species, now we calculate adjustedFitness
@@ -118,22 +151,87 @@ public class CrossingOver
         {
             neuralNetwork.adjustedFitness = neuralNetwork.fitness / (float)(speciesCount[neuralNetwork.speciesIndex]);
             adjustedFitnessesSums[neuralNetwork.speciesIndex] += neuralNetwork.adjustedFitness;
+            adjustedFitnessesSum += neuralNetwork.adjustedFitness;
         }
 
-        neuralNetworks.Sort((x, y) => y.adjustedFitness.CompareTo(x.adjustedFitness));
-
-        List<NeuralNetwork> newNeuralNetworks = new List<NeuralNetwork>();
+        // Remove weakest organisms in each species
         int networksToReproduceCount = (int)(neuralNetworks.Count * networksReproductionFraction);
-        int reproductionTokens = neuralNetworks.Count;
-        int networkIndex = 0;
 
-        for(int i = 0; i < reproductionTokens; i++)
+        int toRemoveLeft = networksToReproduceCount;
+        int networksLeft = neuralNetworks.Count;
+        int removed = 0;
+        for (int i = 0; i < speciesList.Count; i++)
         {
-            NeuralNetwork neuralNetwork = neuralNetworks[networkIndex++ % networksToReproduceCount];//We breed this network with a random network from it's species
-            newNeuralNetworks.Add(new NeuralNetwork(neuralNetwork, species[neuralNetwork.speciesIndex][UnityEngine.Random.Range(0, species[neuralNetwork.speciesIndex].Count)]));
+            speciesList[i].Sort((x, y) => y.adjustedFitness.CompareTo(x.adjustedFitness));
+
+            int removeCount = (int)Mathf.Round(toRemoveLeft * speciesList[i].Count / networksLeft);
+            toRemoveLeft -= removeCount;
+            networksLeft -= speciesList[i].Count;
+
+            for (int j = 0; j < removeCount; j++)
+            {
+                NeuralNetwork toRemove = speciesList[i][speciesList[i].Count - 1]; // Remove last
+                if (!toRemove.elite)
+                {
+                    neuralNetworks.Remove(toRemove);
+                    speciesList[i].Remove(toRemove);
+                    removed++;
+                }
+            }
+        }
+        speciesList.RemoveAll(species => species.Count == 0);
+        Debug.Log("Removed: " + removed);
+
+        // Recalculate adjusted fitness
+        adjustedFitnessesSum = 0;
+        for (int i=0;i<adjustedFitnessesSums.Count; i++)
+        {
+            adjustedFitnessesSums[i] = 0;
+        }
+        foreach (NeuralNetwork neuralNetwork in neuralNetworks)
+        {
+            neuralNetwork.adjustedFitness = neuralNetwork.fitness / (float)(speciesCount[neuralNetwork.speciesIndex]);
+            adjustedFitnessesSums[neuralNetwork.speciesIndex] += neuralNetwork.adjustedFitness;
+            adjustedFitnessesSum += neuralNetwork.adjustedFitness;
         }
 
-        Debug.Log("CrossingOver|Species count: " + species.Count);
-        return newNeuralNetworks;
+        // Calculate reproduction tokens and reproduce
+        int toAddLeft = removed;
+        networksLeft = neuralNetworks.Count;
+        for (int i = 0; i < speciesList.Count; i++)
+        {
+            speciesList[i].Sort((x, y) => y.adjustedFitness.CompareTo(x.adjustedFitness));
+
+            int addCount;
+            if(adjustedFitnessesSum != 0)
+            {
+                addCount = (int)Mathf.Round(toAddLeft * adjustedFitnessesSums[i] / adjustedFitnessesSum);
+                adjustedFitnessesSum -= adjustedFitnessesSums[i];
+                toAddLeft -= addCount;
+                networksLeft -= speciesList[i].Count;
+            }
+            else
+            {
+                addCount = (int)Mathf.Round(toAddLeft * speciesList[i].Count / networksLeft);
+                toAddLeft -= addCount;
+                networksLeft -= speciesList[i].Count;
+            }
+
+            for (int j = 0; j < addCount; j++)
+            {
+                NeuralNetwork p1 = speciesList[i][Random.Range(0, speciesList[i].Count)];
+                NeuralNetwork p2 = speciesList[i][Random.Range(0, speciesList[i].Count)];
+                neuralNetworks.Add(new NeuralNetwork(p1, p2));
+            }
+        }
+
+        foreach ( NeuralNetwork neuralNetwork in neuralNetworks )
+        {
+            neuralNetwork.fitness = 0;
+            neuralNetwork.adjustedFitness = 0;
+        }
+        //Debug.Break();
+        Debug.Log("CrossingOver|Networks count: " + neuralNetworks.Count + " Species count: " + speciesList.Count);
+        return neuralNetworks;
     }
 }

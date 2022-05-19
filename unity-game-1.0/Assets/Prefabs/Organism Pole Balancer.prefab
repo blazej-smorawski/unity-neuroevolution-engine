@@ -290,6 +290,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 703c277ac5b0bb741b5ccb30d9f48297, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  suffix: 
 --- !u!114 &1414883456805354612
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -361,10 +362,11 @@ MonoBehaviour:
   - Angle Y
   - Angle Z
   outputs:
-  - Horizontal
-  - Vertical
-  - Acceleration
-  brainOptions: 
+  - Forward
+  - Backward
+  - Left
+  - Right
+  neuralNetworkOptions: 
   reproductionCooldown: 1
   timeLeftToReproduction: 1
   dead: 0

@@ -136,7 +136,10 @@ public class Overseer : MonoBehaviour
 
     public void Start()
     {
-        crossingOver = new CrossingOver();
+        if (crossingOver == null)
+        {
+            crossingOver = new CrossingOver();
+        }
         Time.timeScale = timeScale;
         generationLeftTime = generationTime;
         SpawnInitialGeneration();
@@ -170,6 +173,7 @@ public class Overseer : MonoBehaviour
     {
         DestroySpawnedObjects(atPositionSpawners);
         DestroySpawnedObjects(spawners);
+        CalculateAverageFitness(organisms);
 
         List<NeuralNetwork> networks = new List<NeuralNetwork>();
         foreach (Organism organism in organisms)
@@ -201,8 +205,6 @@ public class Overseer : MonoBehaviour
             newOrganisms.Add(kidOrganism);
             ++organismNumber;
         }
-
-        CalculateAverageFitness(organisms);
 
         foreach (Organism organism in organisms)
         {

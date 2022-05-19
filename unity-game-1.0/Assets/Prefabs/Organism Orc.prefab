@@ -503,8 +503,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputNumber: 4
   sightRange: 10
-  rewardedId: -1
-  rewardedAmount: 0.5
+  rewardedId: 2
+  rewardedAmount: 0.02
 --- !u!1 &2677827299359468845
 GameObject:
   m_ObjectHideFlags: 0
@@ -551,7 +551,7 @@ MonoBehaviour:
   inputNumber: 1
   sightRange: 10
   rewardedId: 2
-  rewardedAmount: 0.5
+  rewardedAmount: 0.02
 --- !u!1 &2677827299640245886
 GameObject:
   m_ObjectHideFlags: 0
@@ -597,8 +597,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputNumber: 3
   sightRange: 10
-  rewardedId: -1
-  rewardedAmount: 0.5
+  rewardedId: 2
+  rewardedAmount: 0.02
 --- !u!1 &2677827300427321814
 GameObject:
   m_ObjectHideFlags: 0
@@ -644,8 +644,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputNumber: 2
   sightRange: 10
-  rewardedId: -1
-  rewardedAmount: 0.5
+  rewardedId: 2
+  rewardedAmount: 0.02
 --- !u!1 &2677827300510333391
 GameObject:
   m_ObjectHideFlags: 0
@@ -691,8 +691,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputNumber: 5
   sightRange: 10
-  rewardedId: -1
-  rewardedAmount: 0.5
+  rewardedId: 2
+  rewardedAmount: 0.02
 --- !u!1 &2783786913388088041
 GameObject:
   m_ObjectHideFlags: 0
@@ -984,9 +984,11 @@ MonoBehaviour:
   - Distance 4
   - Distance 5
   outputs:
-  - Horizontal
-  - Vertical
-  brainOptions: 
+  - Forward
+  - Backward
+  - Left
+  - Right
+  neuralNetworkOptions: 
   reproductionCooldown: 100
   timeLeftToReproduction: 100
   dead: 0

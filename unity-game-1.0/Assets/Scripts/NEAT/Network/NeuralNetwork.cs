@@ -12,6 +12,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 public class NeuralNetwork : ISerializationCallbackReceiver
 {
     //Public data
+    public bool elite = false;
     public int speciesIndex;
     public float fitness;
     public float adjustedFitness;
@@ -326,7 +327,9 @@ public class NeuralNetwork : ISerializationCallbackReceiver
     /// </summary>
     public void SplitWithNewNode(Edge edge)
     {
+#if NEURAL_NETWORK_DEBUG
         Debug.Log(nodeId);
+#endif
         Node newNode = new Node(nodeId++);
         ConnectNodes(edge.GetFromNode(), newNode, 1);
         ConnectNodes(newNode, edge.GetToNode(), edge.GetWeight());

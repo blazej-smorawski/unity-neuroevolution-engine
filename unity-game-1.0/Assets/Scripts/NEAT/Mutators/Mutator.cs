@@ -42,7 +42,10 @@ public class Mutator
 
         foreach(Organism organism in organisms)
         {
-            MutateOrganism(organism);
+            if (!organism.neuralNetwork.elite)
+            {
+                MutateOrganism(organism);
+            }
         }
     }
 

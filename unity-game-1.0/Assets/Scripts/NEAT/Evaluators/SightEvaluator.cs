@@ -24,19 +24,25 @@ public class SightEvaluator : InputEvaluator
                 //Debug.Log("Visible|I See: "+hitObject.GetVisibleId());
                 organism.neuralNetwork.SetInput("Sight " + inputNumber, hitObject.GetVisibleId());
                 organism.neuralNetwork.SetInput("Distance " + inputNumber, hit.distance);
+                organism.neuralNetwork.SetInput("Distance " + inputNumber, 0);
 
-                if(hitObject.GetVisibleId()==rewardedId)
+                if (hitObject.GetVisibleId()==rewardedId)
                 {
                     organism.neuralNetwork.fitness += rewardedAmount * Time.deltaTime;
                 }
+            }
+            else
+            {
+                organism.neuralNetwork.SetInput("Sight " + inputNumber, -1);
+                organism.neuralNetwork.SetInput("Distance " + inputNumber, 0);
             }
         }
         else
         {
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * sightRange, Color.white);
             //Debug.Log("Visible|Did not Hit");
-            organism.neuralNetwork.SetInput("Sight " + inputNumber, 1);
-            organism.neuralNetwork.SetInput("Distance " + inputNumber, 1);
+            organism.neuralNetwork.SetInput("Sight " + inputNumber, -1);
+            organism.neuralNetwork.SetInput("Distance " + inputNumber, 0);
         }
     }
 }
