@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class Overseer : MonoBehaviour
@@ -8,10 +9,13 @@ public class Overseer : MonoBehaviour
     public float timeScale = 1f;
 
     [Header("Generation Info")]
+    public string recordName = "";
+    private string recordUniqueName = "";
     public float averageFitness = 0;
     public float previousAverageFitness = 0;
     public float bestPreviousAverageFitness = 0;
     public int generationNumber = 0;
+    public int speciesCount = 0;
 
     [Header("Spawning Properties")]
     public string startNeuralNetworkName = "";
@@ -92,6 +96,7 @@ public class Overseer : MonoBehaviour
     private void CalculateAverageFitness(List<Organism> organisms)
     {
         previousAverageFitness = averageFitness;
+
         averageFitness = 0;
         foreach (Organism organism in organisms)
         {
@@ -140,8 +145,19 @@ public class Overseer : MonoBehaviour
         {
             crossingOver = new CrossingOver();
         }
-        Time.timeScale = timeScale;
+        if (recordName != "")
+        {
+            int index = 0;
+            string newRecordUniqueName = recordName+index;
+            while (File.Exists(GetFitnessRecordPath(recordName+index)))
+            {
+                index++;
+                newRecordUniqueName = recordName + index;
+            }
+            recordUniqueName = newRecordUniqueName;
+        }
         generationLeftTime = generationTime;
+        Time.timeScale = timeScale;
         SpawnInitialGeneration();
     }
 
@@ -169,11 +185,25 @@ public class Overseer : MonoBehaviour
         }
     }
 
+    private string GetFitnessRecordPath(string name)
+    {
+        return "Fitness Records\\" + name + ".txt";
+    }
+
+    private void WriteRecords()
+    {
+        if (recordName != "")
+        {
+            File.AppendAllLines(GetFitnessRecordPath(recordUniqueName), new[] { averageFitness.ToString() });
+        }
+    }
+
     private void SpawnNextGeneration()
     {
         DestroySpawnedObjects(atPositionSpawners);
         DestroySpawnedObjects(spawners);
         CalculateAverageFitness(organisms);
+        WriteRecords();
 
         List<NeuralNetwork> networks = new List<NeuralNetwork>();
         foreach (Organism organism in organisms)

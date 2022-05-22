@@ -76,6 +76,13 @@ public class NeuralNetwork : ISerializationCallbackReceiver
 
     public NeuralNetwork(NeuralNetwork strongerParent, NeuralNetwork weakerParent):this()
     {
+        if(strongerParent.fitness < weakerParent.fitness)
+        {
+            NeuralNetwork temp = strongerParent;
+            strongerParent = weakerParent;
+            weakerParent = temp;
+        }
+
         foreach(Node node in strongerParent.GetNodes())
         {
             nodes.Add(DuplicateNode(node));

@@ -1022,7 +1022,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0.78, y: 7.15, z: 0}
+  m_LocalPosition: {x: 0.78, y: 35.1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1465,7 +1465,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.45315388, y: 0.36599815, z: -0.2113091, w: 0.78488564}
-  m_LocalPosition: {x: -4.0575113, y: 21, z: 3.3422737}
+  m_LocalPosition: {x: -9.31, y: 21, z: -6.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1693,16 +1693,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b3fba8a89187f147a7bb01e602d22a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeScale: 5
+  timeScale: 1
+  recordName: pole_balancer
   averageFitness: 0
   previousAverageFitness: 0
   bestPreviousAverageFitness: 0
   generationNumber: 0
+  speciesCount: 0
   startNeuralNetworkName: 
   organismPrefab: {fileID: 1313597845077631194, guid: 47f187392da4725498860bbf35be4f64, type: 3}
-  generationOrganismsCount: 49
-  rowOrganismsCount: 7
-  spawnOffset: 5
+  generationOrganismsCount: 225
+  rowOrganismsCount: 15
+  spawnOffset: 3
   generationTime: 10
   generationLeftTime: 1
   organisms: []
@@ -1943,7 +1945,7 @@ GameObject:
   - component: {fileID: 1178914307}
   - component: {fileID: 1178914306}
   m_Layer: 0
-  m_Name: Food At Position Spawner
+  m_Name: Food Circle At Position Spawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3175,7 +3177,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   foodAmount: 20
   addFitness: 1
-  lifetimeCoefficient: 0.1
+  lifetimeCoefficient: 0.001
 --- !u!4 &1646195598 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4489419329493842493, guid: 752bf07eb0cf9f840aab56035aca4923, type: 3}
@@ -3306,6 +3308,58 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1701845127}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1708528451
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1708528453}
+  - component: {fileID: 1708528452}
+  m_Layer: 0
+  m_Name: Food At Position Spawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1708528452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1708528451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c682f4a7ca2cd19449f8be59c2536677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnOnInterval: 0
+  spawnedObjects: []
+  spawnedObject: {fileID: 1627296023}
+  count: 400
+  radius: 200
+  atPositionRadius: 0.1
+  atPositionOffsetY: 0.5
+  positionY: 0.5
+  timeInterval: 1
+--- !u!4 &1708528453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1708528451}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 69.1, y: 0.5, z: 61.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1772562396 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f9beac3303a0c0e45b53b002c9bcc0aa, type: 3}
